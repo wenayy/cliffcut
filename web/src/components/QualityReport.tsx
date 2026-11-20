@@ -34,7 +34,7 @@ export function QualityReport({ run, foundBy, onOpen }: { run: Run | null; found
   const failed = (p: RunPromo, name: string) => p.checks.filter(c => c.name === name && !c.ok).map(c => c.detail)[0]
 
   const buckets: Bucket[] = [
-    { title: 'Answered its own cliffhanger', why: 'The judge model saw what comes right after the cut and found the question is already answered inside the promo. These are pushed down the ranking.',
+    { title: 'Answered its own cliffhanger', why: 'A stranger who saw only the ad quoted the line that answers it. Pushed down the ranking.',
       items: judged.filter(p => !p.ai_checks!.cliffhanger_open).map(p => ({ label: label(p), detail: p.ai_checks!.cliffhanger_reason })) },
     { title: 'Possible spoiler', why: 'Gives away a twist from much later in the show.',
       items: judged.filter(p => p.ai_checks!.spoiler).map(p => ({ label: label(p), detail: p.ai_checks!.spoiler_reason })) },
@@ -54,35 +54,42 @@ export function QualityReport({ run, foundBy, onOpen }: { run: Run | null; found
     <div className="px-8 py-8 space-y-10 max-w-[900px]">
       <header>
         <h1 className="text-[20px] leading-7 font-medium text-fg-1">Ranking and quality</h1>
-        <p className="mt-1.5 text-[13px] leading-5 text-fg-3 max-w-[70ch]">The two questions Kuku's brief asks of every run: which promos to post first and why, and where the tool picks badly. Run: {run.provider} {run.model}, {run.episodes.length} episodes.</p>
+        <p className="mt-1 text-[13px] text-fg-3">{run.provider} {run.model} · {run.episodes.length} episodes. Click a promo to open it; hover for the full reason.</p>
       </header>
 
       {/* 1. what to post first, and why */}
       <section className="space-y-4">
-        <h2 className="text-[16px] font-medium text-fg-1">Post these first, and why</h2>
-        <p className="text-[13px] leading-5 text-fg-3 max-w-[75ch]">
-          How the rank is decided:
-        </p>
-        <ol className="list-decimal pl-5 space-y-1 text-[13px] leading-5 text-fg-3 max-w-[75ch]">
-          <li>The AI never gives a number. It answers concrete questions with evidence from the script: what conflict it opens on, the exact question left at the cut, whether it needs backstory, whether power shifts.</li>
-          <li>Code awards fixed points for those answers and for what it measures itself: how fast the hook lands, intense emotions and actions in the script, how many people speak, whether a lead is in it, the length, and the reaction hold.</li>
-          <li>Independent judge models add or remove points: is the cliffhanger still open, can a stranger follow it, is anything spoiled.</li>
-          <li>The five scores combine as hook 30%, cliffhanger 25%, makes sense alone 20%, emotion 15%, clarity 10%.</li>
-          <li>Earlier episodes win ties.</li>
-          <li>The top 10 is spread across hook types, so you test different angles.</li>
-        </ol>
-        <ol className="space-y-3">
-          {run.promos.slice(0, 5).map(p => (
-            <li key={p.rank} className="grid grid-cols-[28px_1fr] gap-x-2">
-              <span className="font-mono text-[14px] text-fg-1 tnum">#{p.rank}</span>
-              <div>
-                <button onClick={() => onOpen(p.rank!)} className="text-left text-[14px] text-fg-1 hover:underline underline-offset-2">{p.title}</button>
-                <span className="ml-2 text-[12px] text-fg-3"><span className="inline-block size-1.5 rounded-full mr-1 align-middle" style={{ background: HOOKS[p.hook_type]?.color }} />{HOOKS[p.hook_type]?.label} · ep {p.segments[0]?.episode} · {p.length.toFixed(0)} s</span>
-                <p className="mt-0.5 text-[13px] leading-5 text-fg-2">{p.hook} → {p.cliffhanger}</p>
-                <p className="mt-0.5 text-[12px] leading-[18px] text-fg-3">Why #{p.rank}: {rankReason(p, foundBy?.[p.rank!])}</p>
-              </div>
-            </li>
-          ))}
+        <h2 className="text-[16px] font-medium text-fg-1">Post these first</h2>
+        <div className="rounded-[12px] bg-ink-2 px-4 py-3 max-w-[760px]">
+          <p className="text-[12px] text-fg-3">How the rank is decided: the AI gives evidence, code gives the points</p>
+          <div className="mt-2 flex h-6 overflow-hidden rounded-[6px] text-[11px]">
+            {([['Hook', 30, 'bg-pencil/70'], ['Cliffhanger', 25, 'bg-pencil/50'], ['Makes sense alone', 20, 'bg-pencil/35'], ['Emotion', 15, 'bg-pencil/25'], ['Clarity', 10, 'bg-pencil/15']] as const).map(([l, w, c]) => (
+              <span key={l} className={`${c} flex items-center justify-center text-fg-1 truncate px-1`} style={{ width: `${w}%` }}>{l} {w}%</span>
+            ))}
+          </div>
+          <p className="mt-2 text-[12px] text-fg-3">Then: <span className="text-fg-2">−3</span> spoiler · <span className="text-fg-2">−1</span> a stranger would swipe early · earlier episodes win ties · similar hooks spread apart</p>
+        </div>
+        <ol className="divide-y divide-[var(--color-hairline,rgba(255,255,255,0.06))] max-w-[900px]">
+          {run.promos.slice(0, 10).map(p => {
+            const sc = Object.entries(WEIGHT).reduce((a, [k, w]) => a + w * (p.scores?.[k] ?? 5), 0)
+            return (
+              <li key={p.rank} title={rankReason(p, foundBy?.[p.rank!])}>
+                <button onClick={() => onOpen(p.rank!)} className="w-full text-left grid grid-cols-[36px_1fr_120px] items-center gap-x-3 py-2.5 hover:bg-ink-2 rounded-[8px] px-2">
+                  <span className="font-mono text-[15px] text-fg-1 tnum">#{p.rank}</span>
+                  <span className="min-w-0">
+                    <span className="block text-[14px] text-fg-1 truncate">{p.title}
+                      <span className="ml-2 text-[12px] text-fg-3"><span className="inline-block size-1.5 rounded-full mr-1 align-middle" style={{ background: HOOKS[p.hook_type]?.color }} />{HOOKS[p.hook_type]?.label} · ep {p.segments[0]?.episode} · {p.length.toFixed(0)} s</span>
+                    </span>
+                    <span className="block text-[12px] text-fg-3 truncate">{p.cliffhanger}</span>
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <span className="h-1.5 flex-1 rounded-full bg-ink-3"><span className="block h-full rounded-full bg-fg-2" style={{ width: `${sc * 10}%` }} /></span>
+                    <span className="font-mono text-[12px] text-fg-1 tnum">{sc.toFixed(1)}</span>
+                  </span>
+                </button>
+              </li>
+            )
+          })}
         </ol>
       </section>
 

@@ -60,6 +60,7 @@ export interface PromoDraft {
   rank?: number
   foundBy?: number
   edited?: boolean
+  rejectedBy?: string              // the checks threw it out; the editor can still open, fix or use it
   summary?: { length: number; failed: number }
 }
 

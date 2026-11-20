@@ -97,7 +97,7 @@ export function LinedScript({ episode, segments, marks, focusId, onFocus, showCa
         const focused = focusId === ev.id
         return (
           <div key={ev.id}>
-            {seg && seg !== prev && <Marker text={`Promo starts · ${tc(seg.start_s)}`} />}
+            {seg && seg !== prev && <Marker text={`Ad starts here · ${tc(seg.start_s)} in the episode`} />}
             <div data-id={ev.id} role="option" aria-selected={focused} onClick={() => onFocus(ev.id)}
               className={`grid grid-cols-[76px_1fr] gap-x-3 px-5 py-2 cursor-default transition-colors duration-150 ${
                 focused ? 'bg-ink-3' : seg ? 'bg-pencil/[0.07] hover:bg-pencil/[0.11]' : marked ? 'bg-ink-2' : 'hover:bg-ink-2/70'}`}>
@@ -106,7 +106,7 @@ export function LinedScript({ episode, segments, marks, focusId, onFocus, showCa
               </span>
               <Beat ev={ev} showCamera />
             </div>
-            {seg && seg !== next && <Marker text={`Promo ends · ${tc(seg.end_s)}`} />}
+            {seg && seg !== next && <Marker text={`Ad cuts here · ${tc(seg.end_s)}`} />}
           </div>
         )
       })}

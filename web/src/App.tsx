@@ -1,6 +1,7 @@
 import { ChartColumn, ChevronDown, Clapperboard, Film, Layers, Lock, Play, ScrollText, Scissors } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Group, Panel, Separator } from 'react-resizable-panels'
+import { CutStrip } from './components/CutStrip'
 import { Inspector } from './components/Inspector'
 import { Key, LinedScript, PromoScript } from './components/LinedScript'
 import { Logo } from './components/Logo'
@@ -97,9 +98,13 @@ export default function App() {
     ? run.teasers.map((t, i) => withEdits(fromRun(run, t, 'teaser', i))) : [], [run, edits]) // eslint-disable-line react-hooks/exhaustive-deps
   const trailers = useMemo<PromoDraft[]>(() => run
     ? (run.trailers ?? []).map((t, i) => withEdits(fromRun(run, t, 'trailer', i))) : [], [run, edits]) // eslint-disable-line react-hooks/exhaustive-deps
-  const rejected = run?.rejected ?? []
+  const rejected = useMemo<PromoDraft[]>(() => run ? run.rejected.map((p, i) => {
+    const base = fromRun(run, p, 'promo', i)
+    const why = [...p.checks.filter(c => !c.ok).map(c => c.detail), ...p.problems].join('; ')
+    return withEdits({ ...base, id: `${run.id}:rejected:${i}`, rank: undefined, rejectedBy: why })
+  }) : [], [run, edits]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const active = [...promos, ...teasers, ...trailers].find(p => p.id === activeId) ?? null
+  const active = [...promos, ...teasers, ...trailers, ...rejected].find(p => p.id === activeId) ?? null
   const listFor = (k: PromoDraft['kind'] | undefined) => k === 'teaser' ? teasers : k === 'trailer' ? trailers : promos
   const viewKind = view === 'teasers' ? 'teaser' : view === 'trailers' ? 'trailer' : view === 'promos' ? 'promo' : undefined
   // a list view always has something open: the first one you haven't decided on yet
@@ -143,7 +148,7 @@ export default function App() {
 
   const update = (p: PromoDraft) => {
     const summary = result ? { length: result.length, failed: result.checks.filter(c => !c.ok).length } : p.summary
-    const prev = edits[p.id] ?? [...promos, ...teasers, ...trailers].find(x => x.id === p.id)
+    const prev = edits[p.id] ?? [...promos, ...teasers, ...trailers, ...rejected].find(x => x.id === p.id)
     setEdits(m => ({ ...m, [p.id]: { ...p, summary } }))
     // every approve / reject (and its note) is remembered as the editor's taste for the next run
     if (prev && prev.status !== p.status && p.status !== 'draft') {   // decided: open the next one still waiting
@@ -355,10 +360,10 @@ export default function App() {
           </header>
           <div className="flex-1 overflow-y-auto p-2">
             {run && viewKind && listFor(viewKind).length > 0 && <ReviewBar items={listFor(viewKind)} onExport={() => exportApproved(listFor(viewKind))} />}
-            {run && view === 'promos' && promos.length > 0 && <Explain>{`Ads cut from a single episode, 20–60 s. Ranked best first.`}</Explain>}
-            {run && view === 'teasers' && teasers.length > 0 && <Explain>{`“Next time on…” clips, 8–20 s from the next episode, played at the end of this one.`}</Explain>}
+            {run && view === 'promos' && promos.length > 0 && <Diagram kind="promo" />}
+            {run && view === 'teasers' && teasers.length > 0 && <Diagram kind="teaser" />}
             {run && view === 'trailers' && <>
-              <Explain>{`Ads for the whole show: the best moments from different episodes, in story order, never showing the ending.`}</Explain>
+              <Diagram kind="trailer" />
               {run.story && <StoryStrip story={run.story} />}
               <AskTrailer busy={asking} onAsk={askTrailer} />
             </>}
@@ -370,7 +375,7 @@ export default function App() {
             {view === 'promos' && run && run.promos.length > 0 && (
               <button onClick={exportAll} className="mx-3 mt-3 text-[12px] text-fg-3 hover:text-fg-1 transition-colors duration-150">Export all as CSV</button>
             )}
-            {view === 'promos' && rejected.length > 0 && <Rejected items={rejected} />}
+            {view === 'promos' && rejected.length > 0 && <Rejected items={rejected} activeId={activeId} onOpen={openPromo} />}
             {view === 'promos' && run && run.errors.length > 0 && (
               <div className="mx-3 mt-4 space-y-1">
                 <p className="text-[12px] text-bad">Failed on {run.errors.length} episode{run.errors.length > 1 ? 's' : ''}</p>
@@ -435,10 +440,11 @@ export default function App() {
                   )}
                 </div>
               </header>
+              {active && result && <CutStrip segs={result.segments} eps={eps} onJump={n => { setEpNo(n); setCentre('episode') }} />}
               <p className="shrink-0 border-b hairline px-6 py-2 text-[12px] text-fg-3">
                 {active && centre === 'promo'
-                  ? 'Everything below plays, in this order. Times count from the start of the promo.'
-                  : active ? 'Tinted lines are in the promo, between the red markers. Click a line and press I, then O, to cut your own.'
+                  ? 'The ad, line by line. Times are the ad\'s own clock, from 0:00.'
+                  : active ? 'The whole episode. Times are the episode\'s clock; red rows play in the ad.'
                   : 'Click a line, press I for in and O for out, then Enter, to cut your own promo.'}
               </p>
               <div className="flex-1 overflow-y-auto">
@@ -548,22 +554,16 @@ function PromoGroups({ promos, activeId, onOpen }: { promos: PromoDraft[]; activ
   )
 }
 
-function Rejected({ items }: { items: Run['rejected'] }) {
+function Rejected({ items, activeId, onOpen }: { items: PromoDraft[]; activeId: string | null; onOpen: (p: PromoDraft) => void }) {
   const [open, setOpen] = useState(false)
   return (
     <div className="mx-1 mt-5 border-t hairline pt-3">
       <button onClick={() => setOpen(o => !o)} className="px-2 text-[12px] text-fg-3 hover:text-fg-1 transition-colors duration-150 flex items-center gap-1">
         <ChevronDown size={14} strokeWidth={1.5} className={`transition-transform duration-150 ${open ? '' : '-rotate-90'}`} />
-        Rejected by the checks ({items.length})
+        Thrown out by the checks ({items.length})
       </button>
-      {open && items.map((p, i) => (
-        <div key={i} className="px-3 py-2">
-          <p className="text-[13px] text-fg-2 truncate">{p.title || 'Untitled'}</p>
-          <p className="mt-0.5 font-mono text-[11px] leading-4 text-fg-3">
-            {[...p.checks.filter(c => !c.ok).map(c => `${c.name}: ${c.detail}`), ...p.problems].join('; ')}
-          </p>
-        </div>
-      ))}
+      <p className="px-2 pl-7 text-[11px] text-fg-3">Open one to see why and its scores. Fix it, or use it anyway.</p>
+      {open && items.map(p => <ListItem key={p.id} p={p} active={activeId === p.id} onClick={() => onOpen(p)} label={p.rejectedBy} />)}
     </div>
   )
 }
@@ -650,8 +650,21 @@ function AskTrailer({ busy, onAsk }: { busy: string | null; onAsk: (instruction:
   )
 }
 
-function Explain({ children }: { children: string }) {
-  return <p className="mx-1 mb-2 rounded-[10px] bg-ink-2 px-3 py-2.5 text-[12px] leading-[18px] text-fg-2">{children}</p>
+/* What each output is, drawn: which episodes it takes from, and where it is used. */
+function Diagram({ kind }: { kind: 'promo' | 'teaser' | 'trailer' }) {
+  const box = (t: string, hot = false) => <span className={`rounded-[4px] px-1.5 py-0.5 font-mono text-[10px] ${hot ? 'bg-pencil/35 text-fg-1' : 'bg-ink-3 text-fg-3'}`}>{t}</span>
+  const arrow = <span className="text-fg-3">→</span>
+  const rows = {
+    promo: { eps: <>{box('ep 1')}{box('ep 2', true)}{box('ep 3')}</>, out: 'one 20–60 s ad from one episode', use: 'Instagram, TikTok, YouTube: brings new viewers in' },
+    trailer: { eps: <>{box('ep 1', true)}{box('ep 9', true)}{box('ep 27', true)}{box('…')}</>, out: 'one 60–90 s ad, moments from across the show, in story order', use: 'sells the whole series; never shows the ending' },
+    teaser: { eps: <>{box('end of ep 4')}{arrow}{box('8–20 s of ep 5', true)}</>, out: '“next time on…”', use: 'plays after an episode: keeps viewers watching' },
+  }[kind]
+  return (
+    <div className="mx-1 mb-2 rounded-[10px] bg-ink-2 px-3 py-2.5 space-y-1.5">
+      <div className="flex flex-wrap items-center gap-1">{rows.eps}{kind !== 'teaser' && <>{arrow}<span className="text-[12px] text-fg-1">{rows.out}</span></>}</div>
+      <p className="text-[11px] text-fg-3">{kind === 'teaser' ? `${rows.out}: ` : ''}{rows.use}. Ranked best first.</p>
+    </div>
+  )
 }
 
 function Empty({ title, body }: { title: string; body: string }) {

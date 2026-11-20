@@ -78,6 +78,7 @@ export function Inspector({ promo, result, checking, error, eps, limits, total, 
   const j = ai?.ai_checks
   const [exportOpen, setExportOpen] = useState(false)
   const [showShots, setShowShots] = useState(false)
+  const [showPoints, setShowPoints] = useState(false)
 
   // every camera shot inside the red line, and whether anyone speaks in it
   const shots = useMemo(() => segs.flatMap((s, piece) => {
@@ -146,13 +147,18 @@ export function Inspector({ promo, result, checking, error, eps, limits, total, 
             {promo.edited && <span className="block text-[12px] text-fg-3">You changed this cut; the checks are for your version.</span>}
           </span>
         </div>
+        {promo.rejectedBy && (
+          <p className="rounded-[10px] bg-ink-2 px-3 py-2 text-[12px] leading-[18px] text-fg-2">
+            The checks threw this one out: <span className="text-bad">{promo.rejectedBy}</span>. Its scores are below. Fix it with the arrows under "Adjust the cut", or approve it anyway.
+          </p>
+        )}
         {rendering && <p className="text-[12px] text-fg-2">{rendering}</p>}
         <div className="flex gap-2">
           <button onClick={() => onChange({ ...promo, status: promo.status === 'approved' ? 'draft' : 'approved' })}
-            disabled={codeFailing > 0 || segs.length === 0} title={codeFailing ? 'Fix the failing checks first' : undefined}
+            disabled={segs.length === 0} title={codeFailing ? 'Some checks fail: you can still use it' : undefined}
             className={`h-9 flex-1 rounded-[8px] text-[13px] font-medium transition-[background-color,color,transform] duration-150 active:scale-[0.98] disabled:opacity-40 ${
               promo.status === 'approved' ? 'bg-ok/15 text-ok' : 'bg-fg-1 text-ink-1 hover:bg-white shadow-[inset_0_1px_0_rgb(255_255_255/0.4)]'}`}>
-            {promo.status === 'approved' ? 'Approved' : 'Approve'}
+            {promo.status === 'approved' ? 'Approved' : codeFailing ? 'Approve anyway' : 'Approve'}
           </button>
           <button onClick={() => onChange({ ...promo, status: promo.status === 'rejected' ? 'draft' : 'rejected' })}
             className={`h-9 px-3 rounded-[8px] border hairline text-[13px] transition-colors duration-150 ${promo.status === 'rejected' ? 'bg-ink-3 text-fg-1' : 'text-fg-2 hover:bg-ink-2 hover:text-fg-1'}`}>
@@ -187,9 +193,10 @@ export function Inspector({ promo, result, checking, error, eps, limits, total, 
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 py-5 space-y-7">
-        {rankWhy && promo.rank && (
-          <Section title={`Why it's #${promo.rank}`}>
-            <p className="text-[13px] leading-5 text-fg-2">{rankWhy}</p>
+        {ai && (promo.rank || promo.rejectedBy) && Object.keys(ai.scores ?? {}).length > 0 && (
+          <Section title={promo.rejectedBy ? 'How it scored' : `Why it's #${promo.rank}`}>
+            <WhyCard promo={promo} />
+            {rankWhy && <details className="text-[12px] leading-[18px] text-fg-3"><summary className="cursor-pointer text-fg-2 hover:text-fg-1">In words</summary><p className="mt-1">{rankWhy}</p></details>}
           </Section>
         )}
 
@@ -235,7 +242,7 @@ export function Inspector({ promo, result, checking, error, eps, limits, total, 
                 {Object.entries(HOOKS).map(([k, v]) => <option key={k} value={k} className="bg-ink-2">{v.label}</option>)}
               </select>
             </div>
-            <p className="mt-1 text-[12px] leading-[18px] text-fg-3">The kind of bait it opens with. The top 10 is spread across types so you can test different angles. Change it if the AI guessed wrong.</p>
+            <p className="mt-1 text-[12px] leading-[18px] text-fg-3">Change it if the AI guessed wrong.</p>
           </div>
           {!ai && <p className="text-[13px] text-fg-3">You cut this one by hand, so there is no AI explanation.</p>}
         </Section>
@@ -243,7 +250,9 @@ export function Inspector({ promo, result, checking, error, eps, limits, total, 
         {/* scores, each point with its reason */}
         {ai && Object.keys(ai.scores ?? {}).length > 0 && (
           <Section title="Scores, out of 10" aside={promo.foundBy && promo.foundBy > 1 ? `also picked by ${promo.foundBy - 1} other model${promo.foundBy > 2 ? 's' : ''}` : undefined}>
-            <p className="text-[12px] leading-[18px] text-fg-3">{ai.breakdown ? 'Not the AI\'s opinion: each point is earned by something in the script, listed under the bar.' : 'This run is older: these numbers are the model\'s own estimate.'}</p>
+            <button onClick={() => setShowPoints(v => !v)} className="text-[12px] text-fg-2 underline underline-offset-2 hover:text-fg-1">
+              {showPoints ? 'Hide the reasons' : 'Show the reason for every point'}
+            </button>
             <div className="space-y-4">
               {Object.entries(SCORE_LABEL).map(([k, label]) => {
                 const v = ai.scores[k]
@@ -253,7 +262,7 @@ export function Inspector({ promo, result, checking, error, eps, limits, total, 
                   <div key={k}>
                     <div className="flex justify-between text-[12px]"><span className="text-fg-1">{label}</span><span className="font-mono text-fg-1 tnum">{Number(v).toFixed(v % 1 ? 1 : 0)}</span></div>
                     <div className="mt-1 h-1 rounded-full bg-ink-3"><div className="h-full rounded-full bg-fg-2" style={{ width: `${v * 10}%` }} /></div>
-                    {why.length > 0 && (
+                    {showPoints && why.length > 0 && (
                       <ul className="mt-1.5 space-y-0.5">
                         {why.map((b, i) => (
                           <li key={i} className="grid grid-cols-[34px_1fr] gap-x-1.5 text-[11px] leading-4">
@@ -387,6 +396,46 @@ export function Inspector({ promo, result, checking, error, eps, limits, total, 
           <button onClick={onDelete} className="text-[12px] text-fg-3 hover:text-bad transition-colors duration-150">Delete this promo</button>
         </Section>
       </div>
+    </div>
+  )
+}
+
+/* The verdict at a glance: the number, the five bars, and the four things that move a rank. */
+function WhyCard({ promo }: { promo: PromoDraft }) {
+  const ai = promo.ai!
+  const W: [string, string, number][] = [['hook', 'Hook', 30], ['cliffhanger', 'Cliffhanger', 25], ['standalone', 'Stands alone', 20], ['emotion', 'Emotion', 15], ['clarity', 'Easy to follow', 10]]
+  const total = W.reduce((a, [k, , w]) => a + (ai.scores[k] ?? 5) * w / 100, 0)
+  const j = ai.ai_checks
+  const chips: [boolean, string][] = [
+    ...(j ? [[j.cold_viewer.understandable !== false, 'Stranger follows it'], [j.cliffhanger_open, 'Question still open'], [!j.spoiler, 'No spoiler']] as [boolean, string][] : []),
+    ...((promo.foundBy ?? 0) > 1 ? [[true, `${promo.foundBy} models picked it`]] as [boolean, string][] : []),
+    ...(ai.source_episode && ai.source_episode <= 3 ? [[true, `Early: episode ${ai.source_episode}`]] as [boolean, string][] : []),
+  ]
+  return (
+    <div className="rounded-[12px] bg-ink-2 px-4 py-3">
+      <div className="flex items-end gap-3">
+        <span className="font-mono text-[28px] leading-8 text-fg-1 tnum">{total.toFixed(1)}</span>
+        <span className="pb-1 text-[12px] text-fg-3">out of 10</span>
+      </div>
+      <div className="mt-3 space-y-1.5">
+        {W.map(([k, label, w]) => {
+          const v = ai.scores[k] ?? 0
+          return (
+            <div key={k} className="grid grid-cols-[112px_1fr_24px] items-center gap-2 text-[11px]">
+              <span className="text-fg-2 truncate">{label} <span className="text-fg-3">{w}%</span></span>
+              <span className="h-1.5 rounded-full bg-ink-4"><span className={`block h-full rounded-full ${v >= 8 ? 'bg-ok' : v >= 5 ? 'bg-fg-2' : 'bg-bad'}`} style={{ width: `${v * 10}%` }} /></span>
+              <span className="font-mono text-fg-1 tnum text-right">{v % 1 ? v.toFixed(1) : v}</span>
+            </div>
+          )
+        })}
+      </div>
+      {chips.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {chips.map(([ok, t]) => (
+            <span key={t} className={`rounded-full px-2 py-0.5 text-[11px] ${ok ? 'bg-ok/12 text-ok' : 'bg-bad/12 text-bad'}`}>{ok ? '✓' : '✕'} {t}</span>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
