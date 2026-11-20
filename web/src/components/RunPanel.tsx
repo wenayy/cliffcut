@@ -1,7 +1,7 @@
 import { Eye, EyeOff, FileText, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { Job, ProviderInfo, Show } from '../lib'
-import { api, DEMO, READ_ONLY, rememberKey } from '../lib'
+import { api, DEMO, LIVE, REPO, rememberKey } from '../lib'
 import { Working } from './Logo'
 
 const STAGES: Record<string, string> = {
@@ -139,7 +139,13 @@ export function RunPanel({ show, onUploaded, onDone, onBrowse, hasRuns }: Props)
           Pick the scripts, pick a model, press Find promos. It reads every episode, picks 20–60 s promos with a hook in the first 3 s and a cliffhanger at the cut, checks each one, and ranks them.
           {hasRuns && <> Or <button onClick={onBrowse} className="text-fg-1 underline underline-offset-2 decoration-fg-3/50 hover:decoration-fg-1">look at the last run's promos</button>.</>}
         </p>
-        {DEMO && <p className="mt-3 rounded-[10px] bg-ink-2 px-3 py-2.5 text-[13px] leading-5 text-fg-2">{READ_ONLY}</p>}
+        {DEMO && (
+          <div className="mt-3 rounded-[10px] bg-ink-2 px-3 py-2.5 text-[13px] leading-5 text-fg-2">
+            <p>This demo is read-only: it shows finished runs. To run Cliffcut on your own script with your own API key, use the live version. It can take a minute to wake up.</p>
+            <a href={LIVE} target="_blank" rel="noreferrer" className="mt-2 inline-block rounded-[8px] bg-fg-1 px-3 py-1.5 text-[13px] font-medium text-ink-1 hover:bg-white">Open the live version</a>
+            <p className="mt-2 text-[12px] text-fg-3">MP4 export needs the local app (<a href={REPO} className="underline underline-offset-2 hover:text-fg-1">GitHub</a>).</p>
+          </div>
+        )}
       </header>
 
       {/* 1. scripts */}

@@ -9,7 +9,7 @@ import { ModelsTable } from './components/ModelsTable'
 import { QualityReport, rankReason } from './components/QualityReport'
 import { RunPanel } from './components/RunPanel'
 import type { Agreement, CheckResult, Episode, PromoDraft, Run, SegIn, Show, ShowRef } from './lib'
-import { api, DEMO, download, fromRun, HOOKS, REPO, setPasscode, tc, toCSV, toEDL } from './lib'
+import { api, DEMO, download, fromRun, HOOKS, LIVE, REPO, setPasscode, tc, toCSV, toEDL } from './lib'
 
 type View = 'promos' | 'teasers' | 'trailers' | 'episodes' | 'run' | 'models' | 'quality'
 
@@ -297,7 +297,9 @@ export default function App() {
         <div className="h-14 px-4 flex items-center"><Logo /></div>
         {DEMO && (
           <p className="mx-3 mb-3 rounded-[10px] bg-ink-2 px-3 py-2 text-[12px] leading-[18px] text-fg-3">
-            Online demo, read-only: real runs on shows written for this repo. To run it on your own scripts, see <a href={REPO} className="text-fg-2 underline underline-offset-2 hover:text-fg-1">GitHub</a>.
+            Read-only demo: real runs on shows written for this repo.
+            <a href={LIVE} target="_blank" rel="noreferrer" className="mt-2 block rounded-[8px] bg-fg-1 px-3 py-1.5 text-center text-[12px] font-medium text-ink-1 hover:bg-white">Try it on your own script</a>
+            <span className="mt-1.5 block text-[11px]">Bring your own API key. The first load can take a minute. Code on <a href={REPO} className="text-fg-2 underline underline-offset-2 hover:text-fg-1">GitHub</a>.</span>
           </p>
         )}
         {isPublic && (

@@ -106,7 +106,8 @@ export function setPasscode(p: string) { passcode = p; try { sessionStorage.setI
    call a model or spend a key says so. Built with VITE_DEMO=1; see scripts/export_demo.py. */
 export const DEMO = import.meta.env.VITE_DEMO === '1'
 export const REPO = 'https://github.com/wenayy/cliffcut'
-export const READ_ONLY = `This online demo is read-only: it shows finished runs. To run models on your own scripts, edit cuts or export video, run Cliffcut locally (${REPO}).`
+export const LIVE = 'https://cliffcut.onrender.com'   // the same app with a real backend: bring your own key and scripts
+export const READ_ONLY = `This demo is read-only: it shows finished runs. To run it on your own script with your own API key, open ${LIVE} (it may take a minute to wake up). For MP4 export, run Cliffcut locally (${REPO}).`
 
 export function checkKey(segments: SegIn[], min: number, max: number, leads?: string[] | null) {
   return `${min}|${max}|${leads?.length ? 'L' : ''}|` + segments.map(s => [s.episode, s.first, s.last, s.start ?? '', s.end ?? ''].join(':')).join(',')
