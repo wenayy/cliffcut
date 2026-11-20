@@ -6,7 +6,7 @@ Finds the promos in a microdrama's scripts: the hook, the cliffhanger, and a cle
 
 **Try it on your own script: [cliffcut.onrender.com](https://cliffcut.onrender.com)**. Upload any script, paste your own API key (OpenAI, Gemini, Groq or Claude), and run it. Your key is used for that run only and never stored; uploads are private and wiped after a few hours. The first load can take a minute (free server waking up).
 
-**Read-only demo: [cliffcut.pages.dev](https://cliffcut.pages.dev)**: finished runs on shows written for this repo, always fast. MP4 export needs the local app below.
+MP4 export needs the local app below.
 
 ![Cliffcut demo](docs/media/cliffcut-demo.gif)
 
