@@ -409,14 +409,15 @@ def fit_pieces(raw: dict, eps: dict[int, Episode], lo: float, hi: float) -> dict
     return item | {"fitted": True}
 
 
-def stitch(provider, pool: list[dict], eps: dict[int, Episode], cfg: RunConfig | None = None, story: dict | None = None) -> list[dict]:
+def stitch(provider, pool: list[dict], eps: dict[int, Episode], cfg: RunConfig | None = None, story: dict | None = None,
+           count: int = 3, limit: int = 12) -> list[dict]:
     """Whole-show trailers, built from the strongest moments of different episodes."""
     best, seen_eps = [], set()
     for p in pool:                        # the ranked promos, one moment per episode
         e = p["_segs"][0].episode
         if e not in seen_eps:
             best.append(p); seen_eps.add(e)
-        if len(best) == 12:
+        if len(best) == limit:
             break
     if len(best) < 3:
         return []
@@ -431,7 +432,8 @@ def stitch(provider, pool: list[dict], eps: dict[int, Episode], cfg: RunConfig |
     data = ask_json(provider, trailer_system(lo, hi), "SERIES SYNOPSIS:\n" + synopsis(eps) +
                     (f"\n\nSTORY STRUCTURE: turning points by episode {story['turning_points']}; mood: {story['mood']}; themes: {', '.join(story['themes'])}" if story else "") +
                     "\n\nSTRONGEST MOMENTS, BY EPISODE:\n\n" +
-                    "\n\n".join(blocks) + (guidance(cfg) if cfg else "") + "\n\nReturn 3 different trailers.")
+                    "\n\n".join(blocks) + (guidance(cfg) if cfg else "") +
+                    (f"\n\nReturn {count} different trailers." if count > 1 else "\n\nReturn 1 trailer that follows the editor brief."))
     out = []
     for p in (data.get("trailers") or data.get("promos") or [])[:4]:
         if not isinstance(p, dict):
@@ -443,12 +445,53 @@ def stitch(provider, pool: list[dict], eps: dict[int, Episode], cfg: RunConfig |
     return out
 
 
+def pool_from_run(run: dict, eps: dict[int, Episode]) -> list[dict]:
+    """A saved run's promos, rebuilt into cut segments (no model call), ranked as they were."""
+    pool = []
+    for p in run.get("promos", []):
+        raw = {"segments": [{"first": s["first_event"], "last": s["last_event"]} for s in p["segments"]]}
+        b = _build(raw, eps, 0, 1e9)
+        if b["_segs"] and not b["problems"]:
+            pool.append({**p, "_segs": b["_segs"]})
+    return pool
+
+
+def make_trailers(provider, run: dict, eps: dict[int, Episode], instruction: str = "",
+                  lo: float = 60.0, hi: float = 90.0) -> list[dict]:
+    """More whole-show trailers for a finished run, optionally steered by the editor ("focus on the revenge").
+    Reuses the run's moments and story map, so it costs one model call plus the judge."""
+    c = run.get("config") or {}
+    cfg = RunConfig(brief=instruction, trailer_min=lo, trailer_max=hi, language=c.get("language") or "English",
+                    genre=c.get("genre") or "", leads=run.get("leads") or None)
+    cfg.leads = cfg.leads or main_characters(eps)
+    pool = pool_from_run(run, eps)
+    if len({p["_segs"][0].episode for p in pool}) < 3:
+        raise ValueError("This run has promos in fewer than 3 episodes, so there is nothing to build a whole-show trailer from.")
+    out = []
+    for t in stitch(provider, pool, eps, cfg, run.get("story"), count=1 if instruction.strip() else 3, limit=20):
+        apply_rubric(t, eps, cfg.leads)
+        if not t["code_ok"]:
+            continue
+        try:
+            t["ai_checks"] = judge(provider, t, eps)
+            apply_rubric(t, eps, cfg.leads)
+        except ProviderError as err:
+            if err.fatal:
+                raise
+            t["ai_checks_error"] = str(err)
+        t["score"], t["request"] = score(t), instruction.strip()
+        out.append(_public(t))
+    return out
+
+
 def judge(provider, item: dict, eps: dict[int, Episode]) -> dict:
     segs = item["_segs"]
     seen = transcript(segs, eps)
     cold = ask_json(provider, COLD_SYSTEM, f"THE AD ({item['length']:.0f} s):\n{seen}")
     guard = ask_json(provider, GUARD_SYSTEM,
-                     f"SERIES SYNOPSIS:\n{synopsis(eps)}\n\nTHE PROMO:\n{seen}\n\nWHAT HAPPENS RIGHT AFTER THE CUT:\n{after_cut(segs[-1], eps)}")
+                     f"SERIES SYNOPSIS:\n{synopsis(eps)}\n\nTHE PROMO (everything the viewer sees):\n{seen}\n\n"
+                     f"WHAT HAPPENS RIGHT AFTER THE CUT (NOT in the promo; the viewer does not see this. If the answer or reaction "
+                     f"is only here, the cliffhanger is OPEN):\n{after_cut(segs[-1], eps)}")
     return {
         "cold_viewer": {k: cold.get(k) for k in ("who_to_root_for", "stakes", "open_question", "understandable", "swipe_second")},
         "cliffhanger_open": bool(guard.get("cliffhanger_open", True)),

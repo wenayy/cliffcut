@@ -28,7 +28,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from promo.cuts import PROMO_MAX, PROMO_MIN, Promo, Segment, build_segment, check_promo, clean_boundaries
-from promo.pipeline import RunConfig, main_characters, run_show, save
+from promo.pipeline import make_trailers, RunConfig, main_characters, run_show, save
 from promo.providers import PRESETS, Provider, ProviderError
 from promo.run import load_env
 from promo.timeline import Episode, load_show
@@ -327,6 +327,37 @@ def start_run(sid: str, body: RunIn, x_passcode: str | None = Header(None)):
 
     threading.Thread(target=work, daemon=True).start()
     return job
+
+
+class TrailerIn(BaseModel):
+    instruction: str = ""
+    min: float = 60.0
+    max: float = 90.0
+
+
+@app.post("/api/shows/{sid}/runs/{rid}/trailers")
+def more_trailers(sid: str, rid: str, body: TrailerIn, x_passcode: str | None = Header(None)):
+    """The editor asks for a trailer ("focus on the revenge, end on the duke reveal"); it is added to the run."""
+    eps = episodes(sid, x_passcode)
+    path = RUNS / sid / f"{re.sub(r'[^a-zA-Z0-9_-]', '', rid)}.json"
+    if not path.is_file():
+        raise HTTPException(404, "No such run")
+    run = json.loads(path.read_text())
+    try:
+        prov = Provider.from_preset(run["provider"], run["model"], cache_dir=RUNS / "cache")
+        made = make_trailers(prov, run, eps, body.instruction[:600], body.min, body.max)
+    except ProviderError as err:
+        raise HTTPException(502 if not err.fatal else 400, str(err)) from err
+    except ValueError as err:
+        raise HTTPException(422, str(err)) from err
+    if not made:
+        raise HTTPException(422, "The model's trailer did not pass the checks. Try again, or loosen the request.")
+    trailers = run.setdefault("trailers", [])
+    for t in made:
+        t["rank"] = len(trailers) + 1
+        trailers.append(t)
+    path.write_text(json.dumps(run, indent=2, ensure_ascii=False))
+    return {"made": [t["rank"] for t in made], "run": run}
 
 
 @app.get("/api/jobs/{jid}")

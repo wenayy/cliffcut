@@ -26,6 +26,7 @@ interface Props {
   rankWhy?: string
   videos: Record<number, string>
   onAttach: (files: File[]) => void
+  moments?: { label: string; segs: SegIn[] }[]   // trailers: other promos' moments the editor can add as a piece
 }
 
 const EPS = 0.011
@@ -70,7 +71,7 @@ function plainCheck(name: string, detail: string, limits: { min: number; max: nu
   }
 }
 
-export function Inspector({ promo, result, checking, error, eps, limits, total, onChange, onNudge, onRemoveSegment, onExport, onDelete, onJump, onSegments, onRestore, rankWhy, videos, onAttach, serverVideos = [], rendering }: Props) {
+export function Inspector({ promo, result, checking, error, eps, limits, total, onChange, onNudge, onRemoveSegment, onExport, onDelete, onJump, onSegments, onRestore, rankWhy, videos, onAttach, serverVideos = [], rendering, moments = [] }: Props) {
   const segs = result?.segments ?? []
   const ai = promo.ai
   const j = ai?.ai_checks
@@ -133,6 +134,7 @@ export function Inspector({ promo, result, checking, error, eps, limits, total, 
         <p className="font-mono text-[11px] text-fg-3 tnum">
           {KIND[promo.kind]}{promo.rank && promo.source !== 'editor' ? ` · #${promo.rank} of ${total}` : ''} · {length.toFixed(1)} s · {segs.length > 1 ? `${segs.length} pieces, episodes ${[...new Set(segs.map(s => s.episode))].join(', ')}` : `episode ${segs[0]?.episode ?? ''}`}
         </p>
+        {ai?.request && <p className="text-[12px] leading-[18px] text-fg-2">You asked for: “{ai.request}”</p>}
         <div className={`flex items-start gap-2 rounded-[10px] px-3 py-2 text-[13px] leading-5 ${failing.length ? 'bg-bad/10 text-fg-1' : 'bg-ok/10 text-fg-1'}`}>
           {failing.length ? <CircleAlert size={16} strokeWidth={1.5} className="mt-0.5 shrink-0 text-bad" /> : <CircleCheck size={16} strokeWidth={1.5} className="mt-0.5 shrink-0 text-ok" />}
           <span>
@@ -173,6 +175,11 @@ export function Inspector({ promo, result, checking, error, eps, limits, total, 
             )}
           </div>
         </div>
+        <p className="flex items-center gap-1.5 text-[11px] text-fg-3">
+          <kbd className="rounded-[4px] border hairline bg-ink-3 px-1 font-mono text-[10px] text-fg-2">A</kbd> approve
+          <kbd className="ml-1 rounded-[4px] border hairline bg-ink-3 px-1 font-mono text-[10px] text-fg-2">X</kbd> reject
+          <span>· then the next one opens</span>
+        </p>
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 py-5 space-y-7">
@@ -330,6 +337,16 @@ export function Inspector({ promo, result, checking, error, eps, limits, total, 
               </div>
             </div>
           ))}
+          {promo.kind === 'trailer' && moments.length > 0 && (
+            <label className="block">
+              <span className="text-[12px] text-fg-3">Add a moment from another promo, as a new piece</span>
+              <select value="" onChange={e => { const m = moments[+e.target.value]; if (m) onSegments([...promo.segments, ...m.segs].sort((a, b) => a.episode - b.episode)) }}
+                className="mt-1 w-full rounded-[8px] border hairline bg-ink-2 px-2.5 py-1.5 text-[13px] text-fg-1 outline-none focus:border-fg-3/40">
+                <option value="">Choose a moment…</option>
+                {moments.map((m, i) => <option key={i} value={i}>{m.label}</option>)}
+              </select>
+            </label>
+          )}
         </Section>
 
         <Section title="Note">

@@ -335,6 +335,7 @@ export function RunPanel({ show, onUploaded, onDone, onBrowse, hasRuns }: Props)
               : <span className={`text-[13px] ${job.status === 'error' ? 'text-bad' : 'text-ok'}`}>{job.status === 'error' ? 'Run failed' : `Done: ${job.message}`}</span>}
             <span className="font-mono text-[11px] text-fg-3 truncate">{LABEL[job.provider] ?? job.provider} · {job.model}</span>
           </div>
+          {job.status === 'running' && <StageList stage={job.stage} />}
           {job.status === 'running' && (
             <>
               <div className="h-1.5 rounded-full bg-ink-3 overflow-hidden">
@@ -347,5 +348,33 @@ export function RunPanel({ show, onUploaded, onDone, onBrowse, hasRuns }: Props)
         </section>
       )}
     </div>
+  )
+}
+
+/* What the run is doing, in order, and what the editor does after. */
+const STEPS = [
+  ['find', 'Read every episode', 'The AI reads each script and suggests its best 20–60 s moments, a teaser for the next episode, and where to cut. Code checks every cut.'],
+  ['judge', 'Test the best ones', 'Fresh AI judges watch the top picks like a stranger would: can they follow it, is the cliffhanger still open, is anything spoiled.'],
+  ['stitch', 'Build whole-show trailers', 'The AI maps the story and joins moments from different episodes into 2–3 trailers that never show the ending.'],
+] as const
+
+function StageList({ stage }: { stage: string }) {
+  const at = STEPS.findIndex(([k]) => k === stage)
+  return (
+    <ol className="space-y-2.5">
+      {STEPS.map(([k, title, body], i) => (
+        <li key={k} className="grid grid-cols-[20px_1fr] gap-x-2">
+          <span className={`mt-0.5 grid size-4 place-items-center rounded-full font-mono text-[10px] ${i < at ? 'bg-ok/20 text-ok' : i === at ? 'bg-fg-1 text-ink-1' : 'bg-ink-3 text-fg-3'}`}>{i < at ? '✓' : i + 1}</span>
+          <div>
+            <p className={`text-[13px] ${i === at ? 'text-fg-1' : 'text-fg-3'}`}>{title}</p>
+            {i === at && <p className="text-[12px] leading-[18px] text-fg-3">{body}</p>}
+          </div>
+        </li>
+      ))}
+      <li className="grid grid-cols-[20px_1fr] gap-x-2">
+        <span className="mt-0.5 grid size-4 place-items-center rounded-full bg-ink-3 font-mono text-[10px] text-fg-3">4</span>
+        <p className="text-[13px] text-fg-3">You review: approve or reject each one, then export</p>
+      </li>
+    </ol>
   )
 }

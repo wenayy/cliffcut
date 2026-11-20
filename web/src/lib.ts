@@ -30,7 +30,7 @@ export interface AiChecks {
 export interface RunPromo {
   rank?: number; title: string; hook: string; cliffhanger: string; why: string; hook_type: HookType
   scores: Record<string, number>; score?: number; breakdown?: { axis: string; points: number; max: number; why: string }[]; segments: SegOut[]; length: number; checks: Check[]
-  problems: string[]; code_ok: boolean; ai_checks?: AiChecks; stitched?: boolean; repaired?: boolean
+  problems: string[]; code_ok: boolean; ai_checks?: AiChecks; stitched?: boolean; repaired?: boolean; request?: string; hook_label?: string
   source_episode?: number; line?: string; mood?: string; for_episode?: number; from_episode?: number
 }
 export interface Run {
@@ -119,6 +119,8 @@ export const api = {
   decide: (d: { promo_id: string; decision: string; title: string; hook?: string; cliffhanger?: string; hook_type: string; note: string; show: string }) =>
     req<{ approved: number; rejected: number }>('/api/taste', post(d)),
   estimate: (sid: string, episodes: number[] | null) => req<{ episodes: number; calls: number; tokens: number }>(`/api/shows/${sid}/estimate?episodes=${(episodes ?? []).join(',')}`),
+  moreTrailers: (sid: string, rid: string, instruction: string, min: number, max: number) =>
+    req<{ made: number[]; run: Run }>(`/api/shows/${sid}/runs/${rid}/trailers`, { method: 'POST', body: JSON.stringify({ instruction, min, max }) }),
   videos: (sid: string) => req<{ episodes: number[] }>(`/api/shows/${sid}/videos`),
   uploadVideos: (sid: string, files: File[]) => {
     const f = new FormData()

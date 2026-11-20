@@ -230,3 +230,17 @@ def test_a_promo_just_under_the_minimum_is_started_earlier_not_cut_later():
                 return
     import pytest
     pytest.skip("no near-miss span in the sample")
+
+
+def test_editor_can_ask_for_another_trailer_from_a_finished_run():
+    from promo.pipeline import make_trailers
+    answer, _ = fake_model()
+    run = json.loads(json.dumps(run_show(ReplayProvider(answer), EPS, "Sample", RunConfig(trailer_min=20, trailer_max=60))))
+    prompts = []
+    made = make_trailers(ReplayProvider(lambda s, u: prompts.append(u) or answer(s, u)), run, EPS,
+                         "Focus on the maid's revenge", lo=20, hi=60)
+    assert len(made) == 1 and made[0]["request"] == "Focus on the maid's revenge"
+    assert len({s["episode"] for s in made[0]["segments"]}) >= 2 and made[0]["ai_checks"]["cliffhanger_open"]
+    trailer_prompt = next(u for u in prompts if "STRONGEST MOMENTS" in u)
+    assert "Focus on the maid's revenge" in trailer_prompt and "Return 1 trailer" in trailer_prompt
+    json.dumps(made)

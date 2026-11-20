@@ -100,6 +100,15 @@ export default function App() {
   const rejected = run?.rejected ?? []
 
   const active = [...promos, ...teasers, ...trailers].find(p => p.id === activeId) ?? null
+  const listFor = (k: PromoDraft['kind'] | undefined) => k === 'teaser' ? teasers : k === 'trailer' ? trailers : promos
+  const viewKind = view === 'teasers' ? 'teaser' : view === 'trailers' ? 'trailer' : view === 'promos' ? 'promo' : undefined
+  // a list view always has something open: the first one you haven't decided on yet
+  useEffect(() => {
+    if (!viewKind || (active && active.kind === viewKind)) return
+    const list = listFor(viewKind)
+    const first = list.find(p => p.status === 'draft') ?? list[0]
+    if (first) openPromo(first)
+  }, [viewKind, runId, promos.length, teasers.length, trailers.length]) // eslint-disable-line react-hooks/exhaustive-deps
   const runCfg = (run as unknown as { config?: { trailer_min?: number; trailer_max?: number } })?.config
   const limits = active?.kind === 'teaser' ? { min: 8, max: 20 }
     : active?.kind === 'trailer' ? { min: runCfg?.trailer_min ?? 60, max: runCfg?.trailer_max ?? 90 }
@@ -137,6 +146,12 @@ export default function App() {
     const prev = edits[p.id] ?? [...promos, ...teasers, ...trailers].find(x => x.id === p.id)
     setEdits(m => ({ ...m, [p.id]: { ...p, summary } }))
     // every approve / reject (and its note) is remembered as the editor's taste for the next run
+    if (prev && prev.status !== p.status && p.status !== 'draft') {   // decided: open the next one still waiting
+      const list = listFor(p.kind)
+      const i = list.findIndex(x => x.id === p.id)
+      const next = [...list.slice(i + 1), ...list.slice(0, i)].find(x => x.status === 'draft' && x.id !== p.id)
+      if (next) setTimeout(() => openPromo(next), 250)
+    }
     if (prev && (prev.status !== p.status || (p.status !== 'draft' && prev.note !== p.note))) {
       api.decide({ promo_id: `${showId}:${p.id}`, decision: p.status, title: p.title, hook: p.ai?.hook, cliffhanger: p.ai?.cliffhanger,
         hook_type: p.hookType, note: p.note, show: showId }).catch(() => {})
@@ -185,6 +200,28 @@ export default function App() {
     }
   }
 
+  const exportApproved = async (items: PromoDraft[]) => {
+    const ok = items.filter(p => p.status === 'approved')
+    const rows = await Promise.all(ok.map(async p => {
+      const lim = p.kind === 'teaser' ? { min: 8, max: 20 } : p.kind === 'trailer' ? { min: runCfg?.trailer_min ?? 60, max: runCfg?.trailer_max ?? 90 } : { min: 20, max: 60 }
+      return { p, segs: (await api.check(showId, p.segments, lim.min, lim.max)).segments }
+    }))
+    download(`approved-${viewKind ?? 'promo'}s.csv`, toCSV(rows), 'text/csv')
+  }
+
+  const [asking, setAsking] = useState<string | null>(null)
+  const askTrailer = (instruction: string, min: number, max: number) => {
+    if (!run) return
+    setAsking('Building it from the best moments across the show. About 30 seconds.')
+    api.moreTrailers(showId, run.id, instruction, min, max)
+      .then(r => {
+        setRuns(rs => rs.map(x => x.id === r.run.id ? r.run : x))
+        const t = r.run.trailers![r.made[0] - 1]
+        setActiveId(`${r.run.id}:trailer:${t.rank}`); setCentre('promo'); setAsking(null)
+      })
+      .catch(e => setAsking(`Couldn't make it: ${e.message ?? e}`))
+  }
+
   const exportAll = () => {
     if (!run) return
     const rows = [...promos.filter(p => p.ai), ...trailers, ...teasers].map(p => ({ p, segs: p.ai!.segments }))
@@ -195,7 +232,13 @@ export default function App() {
   const keys = useRef<(e: KeyboardEvent) => void>(() => {})
   keys.current = (e: KeyboardEvent) => {
     const t = e.target as HTMLElement
-    if (t.closest('input, textarea, select') || e.metaKey || e.ctrlKey || !episode) return
+    if (t.closest('input, textarea, select') || e.metaKey || e.ctrlKey) return
+    if (active && (e.key === 'a' || e.key === 'x') && !marks.in) {
+      const want = e.key === 'a' ? 'approved' : 'rejected'
+      if (want === 'approved' && (result?.checks.some(c => !c.ok) ?? true)) return   // same rule as the button
+      update({ ...active, status: active.status === want ? 'draft' : want }); e.preventDefault(); return
+    }
+    if (!episode) return
     const list = episode.events
     const idx = list.findIndex(x => x.id === focusId)
     if (e.key === 'ArrowDown' || e.key === 'j') { setFocusId(list[Math.min(list.length - 1, idx + 1)]?.id); e.preventDefault() }
@@ -278,7 +321,7 @@ export default function App() {
             </button>
           ))}
         </nav>
-        <dl className="mt-auto px-4 pb-4 grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 text-[12px] text-fg-3">
+        <dl className={`mt-auto px-4 pb-4 grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 text-[12px] text-fg-3 ${view === 'episodes' || (centre === 'episode' && viewKind) ? 'grid' : 'hidden'}`}>
           {([[['↑', '↓'], 'Move'], [['I', 'O'], 'Mark in and out'], [['↵'], 'Cut it'], [['[', ']'], 'Episode']] as const).map(([ks, label]) => (
             <div key={label} className="contents">
               <dt className="flex gap-1">{ks.map(k => <Key key={k}>{k}</Key>)}</dt>
@@ -306,12 +349,16 @@ export default function App() {
             )}
           </header>
           <div className="flex-1 overflow-y-auto p-2">
-            {run && view === 'promos' && promos.length > 0 && <Explain>{`${promos.length} promos found in ${run.episodes.length} episode${run.episodes.length > 1 ? 's' : ''}. Each is a 20–60 s ad cut from one episode: start and end times, a hook and a cliffhanger. The AI suggested up to 3 per episode; these passed the checks.`}</Explain>}
-            {run && view === 'teasers' && teasers.length > 0 && <Explain>{`${teasers.length} teasers: short "next time on…" clips. Each is 8–20 s from the next episode and plays at the end of this one, to keep current viewers watching. Episode 1 has none because nothing comes before it.`}</Explain>}
-            {run && view === 'trailers' && trailers.length > 0 && <Explain>{`${trailers.length} trailers for the whole show: ads that join moments from different episodes in story order (hook, turn, rising stakes, cliffhanger) without giving away the ending.` + (run.story ? ' The AI first mapped the story: ' + ([['it starts in episode', 'opportunity'], ['the point of no return is episode', 'point_of_no_return'], ['the major setback is episode', 'major_setback']] as const)
-                .filter(([, k]) => run.story!.turning_points[k]).map(([t, k]) => `${t} ${run.story!.turning_points[k]}`).join(', ') + `. Mood: ${run.story.mood}. About: ${run.story.themes.join(', ')}.` : '')}</Explain>}
-            {view === 'trailers' && trailers.length === 0 && <Empty title="No whole-show trailers in this run" body="A run builds them after it has found promos in at least 3 episodes. Run more episodes, or run again to get them." />}
-            {view === 'trailers' && trailers.map(p => <ListItem key={p.id} p={p} active={activeId === p.id} onClick={() => openPromo(p)} label={`Episodes ${[...new Set(p.segments.map(s => s.episode))].join(', ')}`} />)}
+            {run && viewKind && listFor(viewKind).length > 0 && <ReviewBar items={listFor(viewKind)} onExport={() => exportApproved(listFor(viewKind))} />}
+            {run && view === 'promos' && promos.length > 0 && <Explain>{`Ads cut from a single episode, 20–60 s. Ranked best first.`}</Explain>}
+            {run && view === 'teasers' && teasers.length > 0 && <Explain>{`“Next time on…” clips, 8–20 s from the next episode, played at the end of this one.`}</Explain>}
+            {run && view === 'trailers' && <>
+              <Explain>{`Ads for the whole show: the best moments from different episodes, in story order, never showing the ending.`}</Explain>
+              {run.story && <StoryStrip story={run.story} />}
+              <AskTrailer busy={asking} onAsk={askTrailer} />
+            </>}
+            {view === 'trailers' && trailers.length === 0 && <Empty title="No whole-show trailers yet" body="A run makes them once it has promos in at least 3 episodes. You can also ask for one above." />}
+            {view === 'trailers' && trailers.map(p => <ListItem key={p.id} p={p} active={activeId === p.id} onClick={() => openPromo(p)} label={(p.ai?.request ? `Your request · ` : '') + `Episodes ${[...new Set(p.segments.map(s => s.episode))].join(', ')}`} />)}
             {view === 'promos' && (promos.length === 0
               ? <Empty title="No promos yet" body={runs.length ? 'This run found none that passed the checks. See the rejected list below, or cut one by hand.' : 'Go to New run, pick a model and press Find promos. You can also cut one by hand: open an episode, put the cursor on a line, press I to mark in, O to mark out, then Enter.'} />
               : <PromoGroups promos={promos} activeId={activeId} onOpen={openPromo} />)}
@@ -427,6 +474,8 @@ export default function App() {
                 rankWhy={active.ai && active.kind !== 'teaser' ? rankReason(active.ai, active.foundBy) : undefined}
                 onSegments={segments => update({ ...active, segments })}
                 videos={videos} onAttach={attach} serverVideos={serverVideos} rendering={rendering}
+                moments={active.kind === 'trailer' ? promos.filter(p => p.ai && !p.segments.some(s => active.segments.some(a => a.episode === s.episode)))
+                  .map(p => ({ label: `Ep ${p.segments[0].episode} · ${p.title}`, segs: p.segments })).sort((a, b) => a.segs[0].episode - b.segs[0].episode) : []}
                 onRestore={active.ai ? () => setEdits(m => { const n = { ...m }; delete n[active.id]; return n }) : undefined}
                 onChange={update} onNudge={nudge}
                 onRemoveSegment={i => update({ ...active, segments: active.segments.filter((_, k) => k !== i) })}
@@ -527,6 +576,72 @@ function PassGate({ title, onOk }: { title: string; onOk: (p: string) => void })
         <button className="h-9 w-full rounded-[8px] bg-fg-1 text-[13px] font-medium text-ink-1 hover:bg-white transition-colors duration-150">Open</button>
       </form>
     </div>
+  )
+}
+
+/* Where the review stands: what's approved, rejected, still waiting, and the one thing to do with it. */
+function ReviewBar({ items, onExport }: { items: PromoDraft[]; onExport: () => void }) {
+  const ok = items.filter(p => p.status === 'approved').length
+  const no = items.filter(p => p.status === 'rejected').length
+  const left = items.length - ok - no
+  return (
+    <div className="mx-1 mb-2 px-2 py-2">
+      <p className="whitespace-nowrap text-[12px] text-fg-3 truncate">
+        <span className="text-ok">{ok} approved</span> · {no} rejected · <span className="text-fg-1">{left} to review</span>
+      </p>
+      <div className="mt-2 flex items-center gap-3">
+        <div className="flex h-1 flex-1 overflow-hidden rounded-full bg-ink-3" aria-hidden>
+          <span className="bg-ok" style={{ width: `${(ok / items.length) * 100}%` }} />
+          <span className="bg-fg-3/50" style={{ width: `${(no / items.length) * 100}%` }} />
+        </div>
+        <button onClick={onExport} disabled={!ok}
+          className="whitespace-nowrap text-[12px] text-fg-2 hover:text-fg-1 disabled:text-fg-3 disabled:opacity-60 transition-colors duration-150">Export approved</button>
+      </div>
+    </div>
+  )
+}
+
+/* The story the AI mapped before building trailers, in one line per turning point. */
+function StoryStrip({ story }: { story: NonNullable<Run['story']> }) {
+  const tp = story.turning_points
+  const rows = ([['Hook', 'opportunity'], ['Turn', 'change_of_plans'], ['No way back', 'point_of_no_return'], ['Setback', 'major_setback'], ['Climax', 'climax']] as const)
+    .filter(([, k]) => tp[k])
+  return (
+    <div className="mx-1 mb-2 rounded-[10px] border hairline px-3 py-2.5">
+      <p className="text-[12px] text-fg-2">The story, as the AI mapped it</p>
+      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-fg-3">
+        {rows.map(([l, k]) => <span key={k}>{l} <span className="font-mono text-fg-2 tnum">ep {tp[k]}</span></span>)}
+      </div>
+      {story.mood && <p className="mt-1.5 text-[12px] text-fg-3">Mood: {story.mood}</p>}
+    </div>
+  )
+}
+
+/* The editor asks for a trailer in their own words. */
+function AskTrailer({ busy, onAsk }: { busy: string | null; onAsk: (instruction: string, min: number, max: number) => void }) {
+  const [text, setText] = useState('')
+  const [len, setLen] = useState<[number, number]>([60, 90])
+  const working = !!busy && !busy.startsWith("Couldn't")
+  return (
+    <form onSubmit={e => { e.preventDefault(); if (!working) onAsk(text, len[0], len[1]) }} className="mx-1 mb-3 rounded-[10px] bg-ink-2 px-3 py-3 space-y-2.5">
+      <label className="block">
+        <span className="text-[13px] text-fg-1">Ask for a trailer</span>
+        <textarea value={text} onChange={e => setText(e.target.value)} rows={2}
+          placeholder="e.g. Focus on the revenge. End on the duke's reveal. Only the first 10 episodes."
+          className="mt-1.5 w-full resize-none rounded-[8px] border hairline bg-ink-1 px-2.5 py-2 text-[13px] text-fg-1 placeholder:text-fg-3 outline-none focus:border-fg-3/40" />
+      </label>
+      <div className="flex items-center gap-1.5">
+        {([[45, 60], [60, 90], [90, 120]] as const).map(([a, b]) => (
+          <button type="button" key={a} onClick={() => setLen([a, b])}
+            className={`h-7 whitespace-nowrap rounded-[6px] px-1.5 font-mono text-[11px] tnum transition-colors duration-150 ${len[0] === a ? 'bg-ink-4 text-fg-1' : 'text-fg-3 hover:text-fg-1'}`}>{a}–{b}s</button>
+        ))}
+        <button disabled={working}
+          className="ml-auto h-8 whitespace-nowrap rounded-[8px] bg-fg-1 px-3 text-[13px] font-medium text-ink-1 hover:bg-white disabled:opacity-50 transition-colors duration-150">
+          {working ? 'Making…' : text.trim() ? 'Make it' : 'Make 3 more'}
+        </button>
+      </div>
+      {busy && <p className={`text-[12px] leading-[18px] ${working ? 'text-fg-2' : 'text-bad'}`}>{busy}</p>}
+    </form>
   )
 }
 
