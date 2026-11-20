@@ -1,0 +1,11 @@
+# One-click deploy of the public test server on Render's free plan: New > Blueprint > pick this repo.
+# Visitors bring their own API key and scripts; nothing of ours (keys, Kuku's pack) is on it.
+services:
+  - type: web
+    name: cliffcut
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/config
+    envVars:
+      - key: CLIFFCUT_PUBLIC
+        value: "1"

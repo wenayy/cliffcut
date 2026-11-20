@@ -1,4 +1,4 @@
-# The public test server (Hugging Face Spaces): the web app and the API in one container.
+# The public test server (Render free web service, or any Docker host): the web app and the API in one container.
 # Visitors bring their own API key and scripts; see CLIFFCUT_PUBLIC in server/app.py.
 FROM node:22-slim AS web
 WORKDIR /w
@@ -22,4 +22,4 @@ RUN mkdir -p runs uploads && chown user runs uploads
 USER user
 ENV CLIFFCUT_PUBLIC=1
 EXPOSE 7860
-CMD ["uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["sh", "-c", "uvicorn server.app:app --host 0.0.0.0 --port ${PORT:-7860}"]

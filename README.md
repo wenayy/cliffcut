@@ -48,6 +48,8 @@ cd web && npm install && npm run dev        # http://localhost:5173
 .venv/bin/python -m pytest -q
 ```
 
+Public test server (visitors bring their own key and scripts): deploy `render.yaml` as a Render Blueprint (free plan, uses the Dockerfile).
+
 Online demo: `cd web && VITE_DEMO=1 npx vite build --outDir dist-demo`, then `.venv/bin/python scripts/export_demo.py web/dist-demo` and `npx wrangler pages deploy web/dist-demo --project-name cliffcut`. It exports only the shows written for this repo.
 
 ## Inputs
