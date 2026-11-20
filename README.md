@@ -8,7 +8,7 @@ Finds the promos in a microdrama's scripts: the hook, the cliffhanger, and a cle
 
 ![Cliffcut demo](docs/media/cliffcut-demo.gif)
 
-<sub>Demo uses a sample show written for this repo.</sub>
+<sub>The ranked promos, why #1 is #1 (every point with its reason), the cut marked on the whole episode, approving with <kbd>A</kbd> (the next opens), a whole-show trailer and the story it tells, ranking and quality, and a new run. Sample show written for this repo.</sub>
 
 ## Outputs
 
