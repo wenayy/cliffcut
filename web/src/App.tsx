@@ -42,6 +42,8 @@ export default function App() {
   const [videos, setVideos] = useState<Record<number, string>>({})   // episode -> local object URL (never uploaded)
   const [serverVideos, setServerVideos] = useState<number[]>([])
   const [rendering, setRendering] = useState<string | null>(null)
+  const [isPublic, setIsPublic] = useState(false)   // the hosted test server: bring your own key and scripts
+  useEffect(() => { if (!DEMO) api.config().then(c => setIsPublic(c.public)).catch(() => {}) }, [])
   useEffect(() => { api.videos(showId).then(r => setServerVideos(r.episodes)).catch(() => setServerVideos([])) }, [showId])
   const attach = (files: File[]) => {
     attachLocal(files)
@@ -296,6 +298,11 @@ export default function App() {
         {DEMO && (
           <p className="mx-3 mb-3 rounded-[10px] bg-ink-2 px-3 py-2 text-[12px] leading-[18px] text-fg-3">
             Online demo, read-only: real runs on shows written for this repo. To run it on your own scripts, see <a href={REPO} className="text-fg-2 underline underline-offset-2 hover:text-fg-1">GitHub</a>.
+          </p>
+        )}
+        {isPublic && (
+          <p className="mx-3 mb-3 rounded-[10px] bg-ink-2 px-3 py-2 text-[12px] leading-[18px] text-fg-3">
+            Public test server. Upload your own scripts and paste your own API key. The key is used for your run only and never stored; uploads are wiped after a few hours. MP4 export needs the <a href={REPO} className="text-fg-2 underline underline-offset-2 hover:text-fg-1">local app</a>.
           </p>
         )}
         <div className="px-3 pt-1 pb-5">

@@ -86,6 +86,18 @@ export function tc(t: number): string {
   return `${String(m).padStart(2, '0')}:${s.toFixed(2).padStart(5, '0')}`
 }
 
+/* Which visitor this is, so a shared test server keeps each person's uploads and runs apart. */
+let session = ''
+try {
+  session = localStorage.getItem('cliffcut.session') ?? ''
+  if (!session) { session = Array.from(crypto.getRandomValues(new Uint8Array(12)), b => b.toString(16).padStart(2, '0')).join(''); localStorage.setItem('cliffcut.session', session) }
+} catch { session = session || 'anon' }
+
+/* The key a visitor pasted on a public server. Kept in this tab only (never on the server), so "ask for a trailer" can send it again. */
+let live: { api_key?: string; base_url?: string } = {}
+try { live = JSON.parse(sessionStorage.getItem('cliffcut.live') ?? '{}') } catch { /* */ }
+export function rememberKey(k: { api_key?: string; base_url?: string }) { live = k; try { sessionStorage.setItem('cliffcut.live', JSON.stringify(k)) } catch { /* */ } }
+
 let passcode = ''
 try { passcode = sessionStorage.getItem('cliffcut.passcode') ?? '' } catch { /* storage blocked */ }
 export function setPasscode(p: string) { passcode = p; try { sessionStorage.setItem('cliffcut.passcode', p) } catch { /* */ } }
@@ -127,6 +139,7 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
   if (DEMO) return demoReq<T>(path, init)
   const headers: Record<string, string> = { ...(init?.body instanceof FormData ? {} : { 'content-type': 'application/json' }) }
   if (passcode) headers['x-passcode'] = passcode
+  headers['x-session'] = session
   const r = await fetch(path, { ...init, headers })
   if (!r.ok) {
     let msg = `${r.status} ${r.statusText}`
@@ -141,6 +154,7 @@ async function req<T>(path: string, init?: RequestInit): Promise<T> {
 const post = (body: unknown) => ({ method: 'POST', body: JSON.stringify(body) })
 
 export const api = {
+  config: () => req<{ public: boolean }>('/api/config'),
   shows: () => req<{ shows: ShowRef[] }>('/api/shows'),
   show: (sid: string) => req<Show>(`/api/shows/${sid}`),
   episode: (sid: string, n: number) => req<Episode>(`/api/shows/${sid}/episodes/${n}`),
@@ -157,7 +171,7 @@ export const api = {
     req<{ approved: number; rejected: number }>('/api/taste', post(d)),
   estimate: (sid: string, episodes: number[] | null) => req<{ episodes: number; calls: number; tokens: number }>(`/api/shows/${sid}/estimate?episodes=${(episodes ?? []).join(',')}`),
   moreTrailers: (sid: string, rid: string, instruction: string, min: number, max: number) =>
-    req<{ made: number[]; run: Run }>(`/api/shows/${sid}/runs/${rid}/trailers`, { method: 'POST', body: JSON.stringify({ instruction, min, max }) }),
+    req<{ made: number[]; run: Run }>(`/api/shows/${sid}/runs/${rid}/trailers`, { method: 'POST', body: JSON.stringify({ instruction, min, max, ...live }) }),
   videos: (sid: string) => req<{ episodes: number[] }>(`/api/shows/${sid}/videos`),
   uploadVideos: (sid: string, files: File[]) => {
     const f = new FormData()
@@ -168,6 +182,7 @@ export const api = {
     if (DEMO) throw new Error(READ_ONLY)
     const headers: Record<string, string> = { 'content-type': 'application/json' }
     if (passcode) headers['x-passcode'] = passcode
+    headers['x-session'] = session
     const r = await fetch(`/api/shows/${sid}/render`, { method: 'POST', headers, body: JSON.stringify({ segments, title, vertical, min, max }) })
     if (!r.ok) { let m = `${r.status}`; try { m = (await r.json()).detail ?? m } catch { /* */ } throw new Error(m) }
     return r.blob()

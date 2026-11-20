@@ -1,7 +1,7 @@
 import { Eye, EyeOff, FileText, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { Job, ProviderInfo, Show } from '../lib'
-import { api, DEMO, READ_ONLY } from '../lib'
+import { api, DEMO, READ_ONLY, rememberKey } from '../lib'
 import { Working } from './Logo'
 
 const STAGES: Record<string, string> = {
@@ -105,6 +105,7 @@ export function RunPanel({ show, onUploaded, onDone, onBrowse, hasRuns }: Props)
     if (!show) return
     setErr(null)
     try {
+      rememberKey({ api_key: key || undefined, base_url: custom ? baseUrl : undefined })
       setJob(await api.startRun(show.id, {
         provider: prov, model: model || undefined, base_url: custom ? baseUrl : undefined,
         api_key: key || undefined, episodes: episodes ?? null, brief, use_taste: useTaste,

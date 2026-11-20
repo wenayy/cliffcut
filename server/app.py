@@ -38,6 +38,16 @@ load_env()
 RUNS = Path(os.environ.get("CLIFFCUT_RUNS", ROOT / "runs"))
 UPLOADS = ROOT / "uploads"
 PASSCODE = os.environ.get("CLIFFCUT_PASSCODE", "")
+# Public mode (the hosted test server): every visitor brings their own key and scripts. Keys are used for one request
+# and never stored; uploads, runs and taste are private to the visitor's browser session and wiped after a few hours;
+# the confidential Kuku pack, video upload and MP4 export are off.
+PUBLIC = os.environ.get("CLIFFCUT_PUBLIC") == "1"
+MAX_UPLOAD_FILES, MAX_UPLOAD_BYTES, MAX_UPLOADS_PER_SESSION, MAX_RUNNING_JOBS, KEEP_HOURS = 60, 8_000_000, 4, 3, 3
+
+
+def sess(x_session: str | None) -> str:
+    """A visitor's session id (from their browser), safe to use in a path."""
+    return re.sub(r"[^a-zA-Z0-9]", "", x_session or "")[:40] or "anon"
 
 app = FastAPI(title="Cliffcut")
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
@@ -47,10 +57,10 @@ app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http
 
 SHOWS: dict[str, dict] = {"sample": {"path": ROOT / "samples" / "sample-show", "title": "The Maid Who Owned the House",
                                      "locked": False, "note": "Sample show written for this demo"}}
-if os.environ.get("CLIFFCUT_KUKU"):
+if os.environ.get("CLIFFCUT_KUKU") and not PUBLIC:
     SHOWS["kuku"] = {"path": Path(os.environ["CLIFFCUT_KUKU"]), "title": Path(os.environ["CLIFFCUT_KUKU"]).name,
                      "locked": bool(PASSCODE), "note": "Kuku's input pack (confidential)"}
-if UPLOADS.is_dir():
+if UPLOADS.is_dir() and not PUBLIC:
     for d in sorted(UPLOADS.iterdir()):
         meta = d / "meta.json"
         if meta.exists():
@@ -73,7 +83,9 @@ for sid, folder, title, runs in EXAMPLES:
                       "note": "Test show written for this repo", "runs": RUNS / runs}
 
 
-def run_dir(sid: str) -> Path:
+def run_dir(sid: str, session: str = "") -> Path:
+    if PUBLIC:   # visitors never see each other's runs, and never write into the built-in shows
+        return RUNS / "sessions" / (session or "anon") / re.sub(r"[^a-zA-Z0-9_-]", "", sid)
     return SHOWS.get(sid, {}).get("runs") or RUNS / sid
 
 
@@ -96,9 +108,16 @@ def episodes(sid: str, passcode: str | None) -> dict[int, Episode]:
         return _cache[sid]
 
 
+@app.get("/api/config")
+def config():
+    return {"public": PUBLIC}
+
+
 @app.get("/api/shows")
-def list_shows():
-    return {"shows": [{"id": k, "title": v["title"], "locked": v["locked"], "note": v["note"]} for k, v in SHOWS.items()]}
+def list_shows(x_session: str | None = Header(None)):
+    me = sess(x_session)
+    return {"shows": [{"id": k, "title": v["title"], "locked": v["locked"], "note": v["note"]} for k, v in SHOWS.items()
+                      if v.get("owner") in (None, me)]}
 
 
 @app.get("/api/shows/{sid}")
@@ -174,22 +193,31 @@ def check(sid: str, body: CheckIn, x_passcode: str | None = Header(None)):
 # ------------------------------------------------------------------ upload
 
 @app.post("/api/upload")
-async def upload(files: list[UploadFile] = File(...), title: str = Form("")):
-    if not files or len(files) > 200:
-        raise HTTPException(422, "Upload between 1 and 200 script files")
-    sid = "up-" + uuid.uuid4().hex[:8]
+async def upload(files: list[UploadFile] = File(...), title: str = Form(""), x_session: str | None = Header(None)):
+    me = sess(x_session)
+    if not files or len(files) > (MAX_UPLOAD_FILES if PUBLIC else 200):
+        raise HTTPException(422, f"Upload between 1 and {MAX_UPLOAD_FILES if PUBLIC else 200} script files")
+    if PUBLIC:
+        _purge_old_uploads()
+        if sum(1 for v in SHOWS.values() if v.get("owner") == me) >= MAX_UPLOADS_PER_SESSION:
+            raise HTTPException(429, f"This test server keeps {MAX_UPLOADS_PER_SESSION} uploaded shows per visitor. Reload later, or run Cliffcut locally.")
+    sid = "up-" + uuid.uuid4().hex[:16 if PUBLIC else 8]
     folder = UPLOADS / sid / "scripts"
     folder.mkdir(parents=True)
+    total = 0
     for i, f in enumerate(files):
         raw = await f.read()
+        total += len(raw)
         if len(raw) > 2_000_000:
             raise HTTPException(422, f"{f.filename} is over 2 MB")
+        if PUBLIC and total > MAX_UPLOAD_BYTES:
+            raise HTTPException(422, "This test server takes up to 8 MB of scripts at a time. Upload fewer episodes, or run Cliffcut locally.")
         name = Path(f.filename or f"script-{i}.txt").name
         (folder / (name if Path(name).suffix else name + ".txt")).write_bytes(raw)
     try:
         eps = load_show(folder)
     except ValueError as err:   # an unknown format: let a model convert it, if any key is set up
-        prov = next((p for p in (_try_provider(n) for n in PRESETS) if p), None)
+        prov = None if PUBLIC else next((p for p in (_try_provider(n) for n in PRESETS) if p), None)
         if not prov:
             raise HTTPException(422, f"Could not read the scripts: {err}") from err
         try:
@@ -198,10 +226,21 @@ async def upload(files: list[UploadFile] = File(...), title: str = Form("")):
             raise HTTPException(422, f"Could not read the scripts, even with {prov.name}: {err2}") from err2
     show_title = title.strip() or (eps[0].title if eps and eps[0].source_format != "kuku" else f"Upload {sid[3:]}")
     (UPLOADS / sid / "meta.json").write_text(json.dumps({"title": show_title}))
-    SHOWS[sid] = {"path": folder, "title": show_title, "locked": False, "note": "Uploaded"}
+    SHOWS[sid] = {"path": folder, "title": show_title, "locked": False, "note": "Uploaded", **({"owner": me, "made": time.time()} if PUBLIC else {})}
     _cache[sid] = {e.number: e for e in eps}
     return {"id": sid, "title": show_title, "episodes": len(eps),
             "formats": sorted({e.source_format for e in eps})}
+
+
+def _purge_old_uploads() -> None:
+    """Public server: uploaded scripts and the runs made on them are wiped after KEEP_HOURS."""
+    cutoff = time.time() - KEEP_HOURS * 3600
+    for sid in [k for k, v in SHOWS.items() if v.get("owner") and v.get("made", 0) < cutoff]:
+        shutil.rmtree(UPLOADS / sid, ignore_errors=True)
+        for d in (RUNS / "sessions").glob(f"*/{sid}"):
+            shutil.rmtree(d, ignore_errors=True)
+        _cache.pop(sid, None)
+        SHOWS.pop(sid, None)
 
 
 @app.get("/api/shows/{sid}/estimate")
@@ -243,9 +282,11 @@ class ProviderIn(BaseModel):
 
 
 def make_provider(p: ProviderIn):
+    if PUBLIC and not (p.api_key or "").strip():
+        raise HTTPException(400, "Paste your own API key first. This test server has none of its own; yours is used for this run only and never stored.")
     try:
-        return Provider.from_preset(p.provider, p.model, api_key=p.api_key or None,
-                                    base_url=p.base_url or None, cache_dir=RUNS / "cache")
+        return Provider.from_preset(p.provider, p.model, api_key=(p.api_key or "").strip() or None,
+                                    base_url=p.base_url or None, cache_dir=None if PUBLIC else RUNS / "cache")
     except ProviderError as err:
         raise HTTPException(400, str(err)) from err
 
@@ -278,12 +319,13 @@ class RunIn(ProviderIn):
 
 # ------------------------------------------------------------------ the editor's taste
 
-TASTE = RUNS / "taste.json"
+def taste_path(session: str = "") -> Path:
+    return RUNS / "sessions" / (session or "anon") / "taste.json" if PUBLIC else RUNS / "taste.json"
 
 
-def read_taste() -> list[dict]:
+def read_taste(session: str = "") -> list[dict]:
     try:
-        return json.loads(TASTE.read_text())
+        return json.loads(taste_path(session).read_text())
     except (OSError, json.JSONDecodeError):
         return []
 
@@ -300,29 +342,33 @@ class Decision(BaseModel):
 
 
 @app.get("/api/taste")
-def get_taste():
-    t = read_taste()
+def get_taste(x_session: str | None = Header(None)):
+    t = read_taste(sess(x_session))
     return {"decisions": t, "approved": sum(1 for d in t if d["decision"] == "approved"),
             "rejected": sum(1 for d in t if d["decision"] == "rejected")}
 
 
 @app.post("/api/taste")
-def record(d: Decision):
+def record(d: Decision, x_session: str | None = Header(None)):
     """Every approve or reject is remembered; the next run sees them as examples of this editor's taste."""
-    t = [x for x in read_taste() if x["promo_id"] != d.promo_id]
+    me = sess(x_session)
+    t = [x for x in read_taste(me) if x["promo_id"] != d.promo_id]
     if d.decision in ("approved", "rejected"):
         t.append(d.model_dump() | {"at": time.strftime("%Y-%m-%dT%H:%M:%S")})
-    TASTE.parent.mkdir(parents=True, exist_ok=True)
-    TASTE.write_text(json.dumps(t[-200:], indent=1, ensure_ascii=False))
-    return get_taste()
+    taste_path(me).parent.mkdir(parents=True, exist_ok=True)
+    taste_path(me).write_text(json.dumps(t[-200:], indent=1, ensure_ascii=False))
+    return get_taste(x_session)
 
 
 JOBS: dict[str, dict] = {}
 
 
 @app.post("/api/shows/{sid}/runs")
-def start_run(sid: str, body: RunIn, x_passcode: str | None = Header(None)):
+def start_run(sid: str, body: RunIn, x_passcode: str | None = Header(None), x_session: str | None = Header(None)):
+    me = sess(x_session)
     eps = episodes(sid, x_passcode)
+    if PUBLIC and sum(1 for j in JOBS.values() if j["status"] == "running") >= MAX_RUNNING_JOBS:
+        raise HTTPException(429, "The test server is busy with other runs. Try again in a minute, or run Cliffcut locally.")
     prov = make_provider(body)
     jid = uuid.uuid4().hex[:10]
     job = {"id": jid, "show": sid, "status": "running", "stage": "find", "done": 0, "total": 0,
@@ -336,12 +382,12 @@ def start_run(sid: str, body: RunIn, x_passcode: str | None = Header(None)):
         try:
             run = run_show(prov, eps, SHOWS[sid]["title"],
                            RunConfig(episodes=body.episodes, judge=body.judge, stitch=body.stitch,
-                                     brief=body.brief, taste=read_taste() if body.use_taste else None,
+                                     brief=body.brief, taste=read_taste(me) if body.use_taste else None,
                                      genre=body.genre, teasers=body.teasers, trailer_min=body.trailer_min,
                                      trailer_max=body.trailer_max, language=body.language,
                                      leads=[x.strip().upper() for x in body.leads if x.strip()] if body.leads else None), progress)
             run["show_id"] = sid
-            save(run, run_dir(sid))
+            save(run, run_dir(sid, me))
             job.update(status="done", run_id=run["id"], message=f"{len(run['promos'])} promos")
         except ProviderError as err:
             job.update(status="error", error=str(err))
@@ -353,21 +399,26 @@ def start_run(sid: str, body: RunIn, x_passcode: str | None = Header(None)):
 
 
 class TrailerIn(BaseModel):
+    api_key: str | None = None
+    base_url: str | None = None
     instruction: str = ""
     min: float = 60.0
     max: float = 90.0
 
 
 @app.post("/api/shows/{sid}/runs/{rid}/trailers")
-def more_trailers(sid: str, rid: str, body: TrailerIn, x_passcode: str | None = Header(None)):
+def more_trailers(sid: str, rid: str, body: TrailerIn, x_passcode: str | None = Header(None), x_session: str | None = Header(None)):
     """The editor asks for a trailer ("focus on the revenge, end on the duke reveal"); it is added to the run."""
     eps = episodes(sid, x_passcode)
-    path = run_dir(sid) / f"{re.sub(r'[^a-zA-Z0-9_-]', '', rid)}.json"
+    path = run_dir(sid, sess(x_session)) / f"{re.sub(r'[^a-zA-Z0-9_-]', '', rid)}.json"
     if not path.is_file():
         raise HTTPException(404, "No such run")
     run = json.loads(path.read_text())
     try:
-        prov = Provider.from_preset(run["provider"], run["model"], cache_dir=RUNS / "cache")
+        if PUBLIC and not (body.api_key or "").strip():
+            raise HTTPException(400, "Paste your API key again: this server never stores it.")
+        prov = Provider.from_preset(run["provider"], run["model"], api_key=(body.api_key or "").strip() or None,
+                                    base_url=body.base_url or None, cache_dir=None if PUBLIC else RUNS / "cache")
         made = make_trailers(prov, run, eps, body.instruction[:600], body.min, body.max)
     except ProviderError as err:
         raise HTTPException(502 if not err.fatal else 400, str(err)) from err
@@ -390,8 +441,8 @@ def get_job(jid: str):
     return JOBS[jid]
 
 
-def _runs(sid: str) -> list[dict]:
-    d = run_dir(sid)
+def _runs(sid: str, session: str = "") -> list[dict]:
+    d = run_dir(sid, session)
     out = []
     for p in sorted(d.glob("*.json"), reverse=True) if d.is_dir() else []:
         try:
@@ -402,9 +453,9 @@ def _runs(sid: str) -> list[dict]:
 
 
 @app.get("/api/shows/{sid}/runs")
-def list_runs(sid: str, x_passcode: str | None = Header(None)):
+def list_runs(sid: str, x_passcode: str | None = Header(None), x_session: str | None = Header(None)):
     episodes(sid, x_passcode)
-    runs = _runs(sid)
+    runs = _runs(sid, sess(x_session))
     return {"runs": runs, "agreement": agreement(runs)}
 
 
@@ -467,6 +518,8 @@ def list_videos(sid: str, x_passcode: str | None = Header(None)):
 @app.post("/api/shows/{sid}/videos")
 async def upload_videos(sid: str, files: list[UploadFile] = File(...), x_passcode: str | None = Header(None)):
     """Episode video files, matched by the number in the file name (ep03.mp4, Episode 3.mov…). Local disk only."""
+    if PUBLIC:
+        raise HTTPException(403, "Video upload and MP4 export are off on the public test server. Run Cliffcut locally for those.")
     episodes(sid, x_passcode)
     d = _video_dir(sid)
     d.mkdir(parents=True, exist_ok=True)
@@ -492,6 +545,8 @@ class RenderIn(CheckIn):
 def render(sid: str, body: RenderIn, x_passcode: str | None = Header(None)):
     """Cut the promo from the episode videos: every piece from its IN to its OUT, joined in order, as one MP4.
     Straight cuts only (the brief asks for the moments, not editing): no music, no text."""
+    if PUBLIC:
+        raise HTTPException(403, "MP4 export is off on the public test server. Run Cliffcut locally for it.")
     plan = check(sid, body, x_passcode)["segments"]
     vids = _episode_videos(sid)
     missing = sorted({s["episode"] for s in plan} - set(vids))

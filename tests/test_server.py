@@ -64,7 +64,7 @@ def test_missing_key_is_a_400_with_the_reason(monkeypatch):
 
 
 def test_editor_decisions_are_remembered(monkeypatch, tmp_path):
-    monkeypatch.setattr(srv, "TASTE", tmp_path / "taste.json")
+    monkeypatch.setattr(srv, "taste_path", lambda session="": tmp_path / "taste.json")
     c.post("/api/taste", json={"promo_id": "r1:promo:1", "decision": "approved", "title": "Slap", "note": "great"})
     c.post("/api/taste", json={"promo_id": "r1:promo:2", "decision": "rejected", "title": "Tea", "note": "slow"})
     t = c.post("/api/taste", json={"promo_id": "r1:promo:2", "decision": "draft"}).json()   # undo
@@ -96,3 +96,52 @@ def test_render_cuts_the_promo_from_episode_videos(monkeypatch, tmp_path):
     assert abs(dur - plan["length"]) < 0.3        # the MP4 is exactly the planned cut
     missing = c.post("/api/shows/sample/render", json={"segments": [{"episode": 2, "first": "e02.002", "last": "e02.004"}]})
     assert missing.status_code == 422 and "episode 2" in missing.json()["detail"]
+
+
+# ---------------------------------------------------------------- the public test server
+
+def _public(monkeypatch, tmp_path):
+    monkeypatch.setattr(srv, "PUBLIC", True)
+    monkeypatch.setattr(srv, "UPLOADS", tmp_path / "uploads")
+    monkeypatch.setattr(srv, "RUNS", tmp_path / "runs")
+    monkeypatch.setattr(srv, "SHOWS", {k: v for k, v in srv.SHOWS.items() if k == "sample"})
+
+
+def _up(session):
+    return c.post("/api/upload", files=[("files", ("night-nurse.fountain", io.BytesIO(FOUNTAIN), "text/plain"))],
+                  headers={"x-session": session})
+
+
+def test_public_server_needs_the_visitors_own_key(monkeypatch, tmp_path):
+    _public(monkeypatch, tmp_path)
+    monkeypatch.setenv("OPENAI_API_KEY", "server-key-must-not-be-used")
+    r = c.post("/api/shows/sample/runs", json={"provider": "openai"}, headers={"x-session": "a"})
+    assert r.status_code == 400 and "own API key" in r.json()["detail"]
+    assert c.get("/api/config").json() == {"public": True}
+
+
+def test_public_uploads_are_private_to_the_visitor(monkeypatch, tmp_path):
+    _public(monkeypatch, tmp_path)
+    sid = _up("visitorA").json()["id"]
+    assert len(sid) == len("up-") + 16
+    mine = {s["id"] for s in c.get("/api/shows", headers={"x-session": "visitorA"}).json()["shows"]}
+    theirs = {s["id"] for s in c.get("/api/shows", headers={"x-session": "visitorB"}).json()["shows"]}
+    assert sid in mine and sid not in theirs and "sample" in theirs
+
+
+def test_public_limits_and_video_off(monkeypatch, tmp_path):
+    _public(monkeypatch, tmp_path)
+    for _ in range(srv.MAX_UPLOADS_PER_SESSION):
+        assert _up("busy").status_code == 200
+    assert _up("busy").status_code == 429
+    big = c.post("/api/upload", files=[("files", (f"e{i}.txt", io.BytesIO(b"x" * 1_900_000), "text/plain")) for i in range(5)],
+                 headers={"x-session": "big"})
+    assert big.status_code == 422 and "8 MB" in big.json()["detail"]
+    assert c.post("/api/shows/sample/videos", files=[("files", ("ep1.mp4", io.BytesIO(b"x"), "video/mp4"))]).status_code == 403
+    assert c.post("/api/shows/sample/render", json={"segments": []}).status_code == 403
+
+
+def test_public_runs_are_saved_per_visitor(monkeypatch, tmp_path):
+    _public(monkeypatch, tmp_path)
+    assert srv.run_dir("sample", "a") != srv.run_dir("sample", "b")
+    assert "sessions" in srv.run_dir("sample", "a").parts
