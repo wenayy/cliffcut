@@ -278,7 +278,7 @@ export function RunPanel({ show, onUploaded, onDone, onBrowse, hasRuns }: Props)
           </select>
           <label htmlFor="leads" className="self-start pt-2 text-[13px] text-fg-2">Main characters</label>
           <div>
-            <input id="leads" value={leads} onChange={e => setLeads(e.target.value)} placeholder="e.g. Juliana, Alexander"
+            <input id="leads" value={leads} onChange={e => setLeads(e.target.value)} placeholder="e.g. Mira, Celeste"
               className="h-9 w-full rounded-[8px] border hairline bg-ink-2 px-3 text-[13px] text-fg-1 placeholder:text-fg-3 outline-none focus:border-fg-3/40" />
             <p className="mt-1.5 text-[12px] text-fg-3">Found in the scripts (who appears in the most episodes). Edit if wrong. Promos centre on these characters.</p>
           </div>
