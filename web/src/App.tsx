@@ -1,15 +1,16 @@
-import { ChevronDown, Clapperboard, Film, Layers, Lock, Play, ScrollText, Scissors } from 'lucide-react'
+import { ChartColumn, ChevronDown, Clapperboard, Film, Layers, Lock, Play, ScrollText, Scissors } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Group, Panel, Separator } from 'react-resizable-panels'
 import { Inspector } from './components/Inspector'
 import { Key, LinedScript } from './components/LinedScript'
 import { Logo } from './components/Logo'
 import { ModelsTable } from './components/ModelsTable'
+import { QualityReport, rankReason } from './components/QualityReport'
 import { RunPanel } from './components/RunPanel'
 import type { Agreement, CheckResult, Episode, PromoDraft, Run, SegIn, Show, ShowRef } from './lib'
 import { api, download, fromRun, HOOKS, setPasscode, tc, toCSV, toEDL } from './lib'
 
-type View = 'promos' | 'teasers' | 'trailers' | 'episodes' | 'run' | 'models'
+type View = 'promos' | 'teasers' | 'trailers' | 'episodes' | 'run' | 'models' | 'quality'
 
 const store = {
   get<T>(k: string, d: T): T { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d } catch { return d } },
@@ -214,7 +215,7 @@ export default function App() {
     const a = episode.events.find(e => e.id === marks.in), b = episode.events.find(e => e.id === (marks.out ?? marks.in))
     return a && b ? Math.abs(Math.max(a.end, b.end) - Math.min(a.start, b.start)) : null
   })()
-  const workView = view === 'run' || view === 'models'
+  const workView = view === 'run' || view === 'models' || view === 'quality'
   const showRef = shows.find(s => s.id === showId)
 
   const nav: { id: View; label: string; icon: typeof Play; count?: number }[] = [
@@ -222,6 +223,7 @@ export default function App() {
     { id: 'promos', label: 'Promos', icon: Scissors, count: promos.length },
     { id: 'trailers', label: 'Whole-show trailers', icon: Film, count: trailers.length },
     { id: 'teasers', label: 'Next-episode teasers', icon: Clapperboard, count: teasers.length },
+    { id: 'quality', label: 'Ranking and quality', icon: ChartColumn },
     { id: 'models', label: 'Compare models', icon: Layers, count: new Set(runs.map(r => `${r.provider}/${r.model}`)).size },
     { id: 'episodes', label: 'Read the scripts', icon: ScrollText, count: show?.episodes.length },
   ]
@@ -279,7 +281,7 @@ export default function App() {
         {/* list */}
         <Panel id="list" defaultSize={320} minSize={260} maxSize={480} className="bg-ink-1 border-r hairline flex flex-col">
           <header className="h-14 shrink-0 px-4 flex items-center gap-2 border-b hairline">
-            <h2 className="text-[14px] text-fg-1">{{ promos: 'Promos', teasers: 'Next-episode teasers', trailers: 'Whole-show trailers', episodes: 'Episodes', run: 'Runs', models: 'Runs' }[view]}</h2>
+            <h2 className="text-[14px] text-fg-1">{{ promos: 'Promos', teasers: 'Next-episode teasers', trailers: 'Whole-show trailers', episodes: 'Episodes', run: 'Runs', models: 'Runs', quality: 'Runs' }[view]}</h2>
             {(view === 'promos' || view === 'teasers' || view === 'trailers') && runs.length > 0 && (
               <label className="relative ml-auto">
                 <span className="sr-only">Run</span>
@@ -338,6 +340,7 @@ export default function App() {
         {/* centre: the lined script, or the run / comparison work areas */}
         <Panel id="centre" minSize={420} className="flex flex-col bg-ink-1 relative">
           {view === 'run' ? <div className="flex-1 overflow-y-auto"><RunPanel show={show} hasRuns={runs.length > 0} onBrowse={() => setView('promos')} onUploaded={id => { loadShows().then(() => setShowId(id)) }} onDone={id => { loadRuns(showId, id); setView('promos') }} /></div>
+            : view === 'quality' ? <div className="flex-1 overflow-y-auto"><QualityReport run={run} foundBy={foundBy} onOpen={rank => { const p = promos.find(x => x.rank === rank && x.source !== 'editor'); if (p) { setView('promos'); openPromo(p) } }} /></div>
             : view === 'models' ? <div className="flex-1 overflow-y-auto"><ModelsTable runs={runs} agreement={agreement} onOpen={id => { setRunId(id); setView('promos') }} /></div>
             : (
             <>
@@ -383,6 +386,7 @@ export default function App() {
             ? <Inspector promo={active} result={result} checking={checking} error={checkErr} eps={eps} limits={limits}
                 total={active.kind === 'teaser' ? teasers.length : active.kind === 'trailer' ? trailers.length : promos.filter(p => p.source !== 'editor').length}
                 onJump={n => setEpNo(n)}
+                rankWhy={active.ai && active.kind !== 'teaser' ? rankReason(active.ai, active.foundBy) : undefined}
                 onSegments={segments => update({ ...active, segments })}
                 videos={videos} onAttach={attach}
                 onRestore={active.ai ? () => setEdits(m => { const n = { ...m }; delete n[active.id]; return n }) : undefined}

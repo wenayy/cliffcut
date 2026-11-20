@@ -71,11 +71,28 @@ Yes. New run now has **"What to make"**:
 
 Agreed, and changed. A promo is only flagged as a spoiler when it gives away a **major twist from much later**: a hidden identity, a death, the ending. Showing what happens in this episode or the next one or two is normal promo material and isn't flagged.
 
+## "Where is the ranking, and where does it say what the tool gets wrong?"
+
+Kuku's brief asks every run two things: *"Rank them: which would you post first, and why?"* and *"Check quality: where does your tool pick badly?"* Both now have their own page, **Ranking and quality**, in the menu:
+
+- **Post these first, and why.** The top 5, each with a plain reason. For example: *"Why #1: combined score 8.8/10 (strongest: hook 9, cliffhanger 9); passed the stranger, cliffhanger and spoiler checks; also picked by 2 other models."* It also lists how the rank is decided.
+- **Quality in numbers.** How many the model suggested, the share that passed the code checks, how many needed a repair, cliffhanger-still-open and no-spoiler rates for the judged finalists, and how many teasers passed.
+- **Where it picks badly.** Every failure from the run, grouped by kind, with the reason: answered its own cliffhanger, possible spoiler, a stranger couldn't follow it, wrong length, no time for the reaction, teasers that showed the ending. It ends with the blind spots no check can catch.
+
+Each promo's panel also opens with **"Why it's #N"**.
+
+## "Are promos made one episode at a time? The brief says a promo can join moments."
+
+Both happen:
+
+- **Promos** are found **one episode at a time**: the AI reads one episode and suggests up to 3. Reading closely, episode by episode, is what makes the picks precise. A promo can still join **two moments from the same episode** (skipping a slow middle), and you can join more with "Add as piece 2".
+- **Whole-show trailers** are the **across-episodes** promos the brief mentions. After all the episodes are read, the AI joins the strongest moments from different episodes, in story order. Set their length to **45–60 s** on New run and they fit the brief's 20–60 s promo rule exactly; the longer settings (60–90 s, 90–120 s) are an extra.
+
 ## "The editor has raw footage. How do they use the red line?"
 
 The script's times **are** the episode video's timecodes: the scripts were timed to the edit. So the red line's IN and OUT point straight into the footage. There are three ways to use them:
 
-1. **Watch it inside Cliffcut.** In the right panel, under **Watch it**, click **Attach videos** and pick the episode files (name them with the episode number, like `ep03.mp4`). Press play: Cliffcut plays the actual promo, piece 1 from its IN to its OUT, then piece 2 from its episode, and so on, in a 9:16 frame like a phone. **The files stay on your computer; nothing is uploaded.** Tested with timecoded test videos: piece 1 started at exactly episode 1, 00:23.60 (its IN), then jumped to episode 2, 00:22.40 (piece 2's IN).
+1. **Watch it inside Cliffcut (optional).** Kuku's pack has scripts only, and they're enough to find promos. An editor who has the episode video files can click **"Attach episode videos"** in the right panel and pick the episode files (name them with the episode number, like `ep03.mp4`). Press play: Cliffcut plays the actual promo, piece 1 from its IN to its OUT, then piece 2 from its episode, and so on, in a 9:16 frame like a phone. **The files stay on your computer; nothing is uploaded.** Tested with timecoded test videos: piece 1 started at exactly episode 1, 00:23.60 (its IN), then jumped to episode 2, 00:22.40 (piece 2's IN).
 2. **Export the EDL.** Premiere or DaVinci Resolve opens it with every piece already placed on the timeline from the episode files. The editor only adds polish.
 3. **By hand.** Read IN and OUT (for example 01:29.30 → 01:58.40) and set those points in any editor.
 
@@ -94,6 +111,12 @@ The red line is for *reading and choosing*; the video preview is for *watching*;
   - **"Camera: …"** in small grey describes what the shot shows. It's a direction, not something spoken.
   - **"Action"** lines (what people do) are white, like dialogue, because they matter just as much.
   - **"Sound"** lines are light grey.
+
+## "Main characters, turning points and mood"
+
+- **Main characters** are found in the scripts automatically: who appears in the most episodes (on Kuku's show: Juliana, Alexander, Catherine). They're shown on New run and can be edited. Promos and trailers are told to centre on them, because viewers follow the leads.
+- **Story map before trailers.** Like the trailer research (Papalampidi et al.), the AI first finds the show's five turning points (opportunity, change of plans, point of no return, major setback, climax), plus its mood and themes. Trailers are built from those turning points up to the climax, never including it. On Kuku's show it found: starts in episode 1, point of no return in episode 4, major setback in episode 41, climax in episode 45. Mood: dark, tense, romantic, vengeful. Themes: betrayal and redemption, class, love and loyalty, abuse of power. The trailers tab shows this map.
+- **A flash of emotion.** Trailers may open with 2–3 flashes of 1–2 seconds (a gasp, a slap, a tear) before the story beats, a burst of feeling that pulls you in before you know why.
 
 ## "It must work in Hindi and regional languages"
 

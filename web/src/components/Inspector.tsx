@@ -21,6 +21,7 @@ interface Props {
   onJump: (episode: number) => void
   onSegments: (segments: SegIn[]) => void
   onRestore?: () => void
+  rankWhy?: string
   videos: Record<number, string>
   onAttach: (files: File[]) => void
 }
@@ -67,7 +68,7 @@ function plainCheck(name: string, detail: string, limits: { min: number; max: nu
   }
 }
 
-export function Inspector({ promo, result, checking, error, eps, limits, total, onChange, onNudge, onRemoveSegment, onExport, onDelete, onJump, onSegments, onRestore, videos, onAttach }: Props) {
+export function Inspector({ promo, result, checking, error, eps, limits, total, onChange, onNudge, onRemoveSegment, onExport, onDelete, onJump, onSegments, onRestore, rankWhy, videos, onAttach }: Props) {
   const segs = result?.segments ?? []
   const ai = promo.ai
   const j = ai?.ai_checks
@@ -166,6 +167,12 @@ export function Inspector({ promo, result, checking, error, eps, limits, total, 
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 py-5 space-y-7">
+        {rankWhy && promo.rank && (
+          <Section title={`Why it's #${promo.rank}`}>
+            <p className="text-[13px] leading-5 text-fg-2">{rankWhy}</p>
+          </Section>
+        )}
+
         {/* what it is */}
         <Section title="What this promo is">
           {ai?.hook && <Row k="Opens on">{ai.hook}</Row>}
@@ -222,9 +229,7 @@ export function Inspector({ promo, result, checking, error, eps, limits, total, 
         </Section>
 
         {/* the real thing, from the episode videos */}
-        <Section title="Watch it">
-          <VideoPreview segs={segs} videos={videos} onAttach={onAttach} />
-        </Section>
+        <VideoSection segs={segs} videos={videos} onAttach={onAttach} />
 
         {/* what a viewer sees */}
         <Section title="The lines, as a viewer hears them">
@@ -314,6 +319,20 @@ export function Inspector({ promo, result, checking, error, eps, limits, total, 
           <button onClick={onDelete} className="text-[12px] text-fg-3 hover:text-bad transition-colors duration-150">Delete this promo</button>
         </Section>
       </div>
+    </div>
+  )
+}
+
+/* Optional: Kuku's pack has scripts, not video. With the episode files, the promo can be watched here. */
+function VideoSection({ segs, videos, onAttach }: { segs: SegOut[]; videos: Record<number, string>; onAttach: (f: File[]) => void }) {
+  const has = segs.length > 0 && segs.every(s => videos[s.episode])
+  const [open, setOpen] = useState(false)
+  if (has || open) return <Section title="Watch it"><VideoPreview segs={segs} videos={videos} onAttach={onAttach} /></Section>
+  return (
+    <div className="rounded-[10px] border hairline px-3 py-2.5">
+      <p className="text-[13px] text-fg-1">Have the episode videos? <span className="text-fg-3">(optional)</span></p>
+      <p className="mt-0.5 text-[12px] leading-[18px] text-fg-3">The scripts are enough to find promos. If you also have the episode video files, attach them and this promo plays right here, piece by piece, from its IN to its OUT.</p>
+      <button onClick={() => setOpen(true)} className="mt-2 text-[12px] text-fg-2 underline underline-offset-2 hover:text-fg-1">Attach episode videos</button>
     </div>
   )
 }
