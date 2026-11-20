@@ -58,5 +58,5 @@ cd web && npm install && npm run dev        # http://localhost:5173
 | `promo/` | Parsing, clean cuts, providers, pipeline, scoring |
 | `server/` | FastAPI |
 | `web/` | Editor (React, Vite, Tailwind) |
-| `samples/` | Test shows (English, Hindi, Hinglish, subtitles, Final Draft) |
+| `samples/` | Test shows: English, Hindi, Hinglish; thriller, crime, fantasy, comedy, mythology, horror; Kuku, screenplay, Final Draft, SRT, VTT |
 | `tests/` | Tests |

@@ -210,3 +210,23 @@ def test_scores_come_from_evidence_and_measurements_not_model_numbers():
     apply_rubric(weak, EPS, [])
     assert weak["scores"]["hook"] < item["scores"]["hook"]          # no evidence, fewer points
     assert any("No charged opening" in b["why"] for b in weak["breakdown"])
+
+
+def test_a_promo_just_under_the_minimum_is_started_earlier_not_cut_later():
+    from promo.pipeline import build
+    from promo.timeline import load_show
+    eps = {e.number: e for e in load_show(Path(__file__).parent.parent / "samples" / "sample-show")}
+    ep = eps[1]
+    lines = ep.of("dialogue")
+    # find a span of lines that is a little under 20 s
+    for i in range(3, len(lines)):
+        for j in range(i, len(lines)):
+            raw = {"segments": [{"first": lines[i].id, "last": lines[j].id}]}
+            plain = build.__globals__["_build"](raw, eps, 20, 60)
+            if [c["name"] for c in plain["checks"] if not c["ok"]] == ["length"] and 17 < plain["length"] < 20:
+                out = build(raw, eps, 20, 60)
+                assert out["code_ok"] and out["stretched"]
+                assert out["segments"][-1]["end"] == plain["segments"][-1]["end"]     # the cliffhanger cut is untouched
+                return
+    import pytest
+    pytest.skip("no near-miss span in the sample")

@@ -1,0 +1,86 @@
+EPISODE NUMBER: Episode 1
+EPISODE LOGLINE: A journalist meets a whistleblower in a parking garage and learns her own editor betrayed her.
+
+--- SCRIPT START ---
+
+SCENE 01
+Scene heading: INT. PARKING GARAGE - NIGHT
+
+Actions and dialogue:
+
+**CAMERA:**
+Start: (00:00.00) | End: (00:05.00)
+Wide shot of an empty parking garage at night, one flickering light.
+
+**ACTION:**
+Start: (00:00.00) | End: (00:03.00)
+Nisha walks fast to her car, keys already in her hand.
+
+**SOUND FX:**
+Start: (00:03.00) | End: (00:05.00)
+Footsteps echo behind her, matching her pace.
+
+**CAMERA:**
+Start: (00:05.00) | End: (00:08.00)
+Close-up on Nisha's face as she stops and listens.
+
+**NISHA (Tense):**
+Start: (00:05.00) | End: (00:08.00)
+I know someone's there. Come out.
+
+**CAMERA:**
+Start: (00:08.00) | End: (00:18.50)
+Medium shot: Arjun steps out from behind a pillar, hands raised.
+
+**ARJUN (Calm):**
+Start: (00:08.00) | End: (00:11.50)
+Relax. I'm the one who sent you the files.
+
+**NISHA (Suspicious):**
+Start: (00:11.50) | End: (00:14.50)
+You said we'd meet at the café. Why here?
+
+**ARJUN (Urgent):**
+Start: (00:14.50) | End: (00:18.50)
+Because the café is watched. Your editor sold you out an hour ago.
+
+**CAMERA:**
+Start: (00:18.50) | End: (00:32.00)
+Close-up on Nisha, stunned.
+
+**NISHA (Shaken):**
+Start: (00:18.50) | End: (00:21.50)
+Rakesh? He's been my editor for ten years.
+
+**ARJUN (Grim):**
+Start: (00:21.50) | End: (00:25.00)
+And for six of them he's been on the minister's payroll.
+
+**ACTION:**
+Start: (00:25.00) | End: (00:27.00)
+Arjun hands her a pen drive.
+
+**ARJUN (Low):**
+Start: (00:27.00) | End: (00:30.00)
+Everything is on this. Don't go home tonight.
+
+**SOUND FX:**
+Start: (00:30.00) | End: (00:32.00)
+A car engine starts somewhere on the level below.
+
+**CAMERA:**
+Start: (00:32.00) | End: (00:37.50)
+Wide shot: headlights sweep across the pillars toward them.
+
+**NISHA (Panicked):**
+Start: (00:32.00) | End: (00:34.50)
+Arjun, who else knows you're here?
+
+**ARJUN (Quiet):**
+Start: (00:34.50) | End: (00:37.50)
+Only one person. And I just saw his car.
+
+**CAMERA:**
+Start: (00:37.50) | End: (00:40.00)
+Extreme close-up on Nisha's eyes as the headlights hit her face.
+

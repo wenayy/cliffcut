@@ -161,7 +161,7 @@ Reply with JSON only: {"who_to_root_for":"...","stakes":"...","open_question":".
 "understandable" is false if you could not follow who is who or why it matters. "swipe_second" is the second at which a bored viewer would swipe away, or null if they would watch to the end."""
 
 GUARD_SYSTEM = """You check a promo for a microdrama against what happens right AFTER it is cut, and against the whole series synopsis.
-- cliffhanger_open: true if the question the promo raises is still unanswered at the cut (the answer comes after). false if the promo itself already shows the answer.
+- cliffhanger_open: true if a viewer is left needing the next scene. A reveal, threat, accusation or punchline landing AT the cut, whose consequence or reaction we have not yet seen, is the classic cliffhanger and counts as OPEN (the question becomes "what happens now?"). false only if the promo also plays out the fallout: the confrontation resolves, the threat is defused, the mystery is explained, so nothing pulls the viewer forward.
 - spoiler: true ONLY if the promo reveals a major twist from much later in the series (a hidden identity, a death, the ending) that would ruin it for a new viewer. Showing what happens in this episode or the next one or two is normal promo material and is NOT a spoiler.
 Reply with JSON only: {"cliffhanger_open":true,"cliffhanger_reason":"...","spoiler":false,"spoiler_reason":"..."}"""
 
@@ -216,7 +216,30 @@ def episode_of(event_id: str) -> int:
 
 # ---------------------------------------------------------------- building
 
+STRETCH_MAX = 4.0   # a promo this many seconds or less under the minimum is lengthened in code
+
+
 def build(raw: dict, eps: dict[int, Episode], lo: float, hi: float) -> dict:
+    """AI candidate -> cut segments + code checks; a near-miss on length is fixed by starting earlier."""
+    out = _build(raw, eps, lo, hi)
+    short = [c for c in out["checks"] if not c["ok"]]
+    if out["code_ok"] or out["problems"] or [c["name"] for c in short] != ["length"] or not 0 < lo - out["length"] <= STRETCH_MAX:
+        return out
+    # start a beat or two earlier, never later at the end: the cut stays on the cliffhanger
+    segs = raw.get("segments") or [{"first": raw.get("first"), "last": raw.get("last")}]
+    first = str(segs[0]["first"])
+    ep = eps[episode_of(first)]
+    t0 = ep.by_id()[first].start
+    earlier = sorted((e for e in ep.events if e.kind != "camera" and e.start < t0 - 0.011), key=lambda e: -e.start)
+    for e in earlier[:4]:
+        trial = _build({**raw, "segments": [{**segs[0], "first": e.id}, *segs[1:]]}, eps, lo, hi)
+        if trial["code_ok"]:
+            trial["stretched"] = f"started {t0 - e.start:.1f} s earlier to reach the {lo:.0f} s minimum"
+            return trial
+    return out
+
+
+def _build(raw: dict, eps: dict[int, Episode], lo: float, hi: float) -> dict:
     """AI candidate -> cut segments + code checks. Never raises on bad ids; records why."""
     segs: list[Segment] = []
     problems: list[str] = []
