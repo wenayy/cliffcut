@@ -1,0 +1,31 @@
+{
+  "_help": "Every model Cliffcut can use. Add one by adding an entry: api is 'openai' (any OpenAI-compatible endpoint) or 'anthropic' (Claude, via the official SDK). Keys are read from the environment variable named in key_env (put it in .env). concurrency = parallel calls (keep low on free tiers).",
+  "gemini": {
+    "api": "openai",
+    "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+    "model": "gemini-3.8-flash",
+    "key_env": "GEMINI_API_KEY",
+    "concurrency": 3
+  },
+  "groq": {
+    "api": "openai",
+    "base_url": "https://api.groq.com/openai/v1",
+    "model": "openai/gpt-oss-120b",
+    "key_env": "GROQ_API_KEY",
+    "concurrency": 1
+  },
+  "openai": {
+    "api": "openai",
+    "base_url": "https://api.openai.com/v1",
+    "model": "gpt-5.4-mini",
+    "key_env": "OPENAI_API_KEY",
+    "concurrency": 4
+  },
+  "claude": {
+    "api": "anthropic",
+    "model": "claude-opus-5-5",
+    "key_env": "ANTHROPIC_API_KEY",
+    "concurrency": 4,
+    "effort": "medium"
+  }
+}

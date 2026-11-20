@@ -1,0 +1,142 @@
+EPISODE NUMBER: Episode 3
+EPISODE LOGLINE: At the hurried wedding, Celeste plants a poisoned glass meant for Mira, and Damien drinks it instead.
+CONTINUITY NOTES: Sample show for Cliffcut's public demo. Not Kuku content. Nine days later, the mansion chapel.
+
+--- SCRIPT START ---
+
+SCENE 01
+Scene heading: INT. VANCE CHAPEL – DAY
+Scene start: 00:00.00
+Scene end: 01:10.00
+
+Actions and dialogue:
+
+**CAMERA:**
+Start: (00:00.00) | End: (00:04.00)
+Wide shot of a small candlelit chapel; a handful of guests on wooden pews.
+
+**CAMERA:**
+Start: (00:04.00) | End: (00:08.40)
+Medium shot of Mira at the altar in a plain white dress, beside Damien.
+
+**PRIEST (Solemn):**
+Start: (00:04.40) | End: (00:08.00)
+"If anyone knows a reason these two should not wed, speak now."
+
+**CAMERA:**
+Start: (00:08.40) | End: (00:12.60)
+Close-up on Celeste in the front pew, smiling.
+
+**CELESTE (Sweet):**
+Start: (00:08.80) | End: (00:12.20)
+"No reason at all. I brought the wine myself."
+
+**CAMERA:**
+Start: (00:12.60) | End: (00:17.00)
+Insert of two silver cups on the altar; Celeste's ring brushes the rim of one.
+
+**ACTION:**
+Start: (00:12.80) | End: (00:17.00)
+A fine white powder drifts from the ring's hollow stone into the left cup.
+
+**CAMERA:**
+Start: (00:17.00) | End: (00:21.20)
+Medium two-shot of Mira and Damien exchanging rings.
+
+**DAMIEN (Quiet):**
+Start: (00:17.40) | End: (00:20.80)
+"Nine days, and you still don't trust me."
+
+**CAMERA:**
+Start: (00:21.20) | End: (00:25.40)
+Close-up on Mira.
+
+**MIRA (Dry):**
+Start: (00:21.60) | End: (00:25.00)
+"I trust you more than I trust your sister."
+
+**CAMERA:**
+Start: (00:25.40) | End: (00:29.80)
+Medium shot of the priest lifting the left cup toward Mira.
+
+**PRIEST (Warm):**
+Start: (00:25.80) | End: (00:29.40)
+"The bride drinks first, as is the custom of this house."
+
+**CAMERA:**
+Start: (00:29.80) | End: (00:33.00)
+Close-up on Celeste, leaning forward.
+
+**CAMERA:**
+Start: (00:33.00) | End: (00:37.60)
+Close-up on Damien, noticing the white residue on the rim.
+
+**ACTION:**
+Start: (00:33.00) | End: (00:37.60)
+Damien takes the cup from the priest before Mira can.
+
+**DAMIEN (Light, Deliberate):**
+Start: (00:35.00) | End: (00:37.30)
+"A new custom. The groom goes first."
+
+**CAMERA:**
+Start: (00:37.60) | End: (00:41.20)
+Close-up on Celeste, rising from the pew.
+
+**CELESTE (Panicked):**
+Start: (00:37.90) | End: (00:39.60)
+"Damien, don't!"
+
+**CAMERA:**
+Start: (00:41.20) | End: (00:45.40)
+Slow motion as Damien drinks.
+
+**SOUND FX:**
+Start: (00:41.20) | End: (00:45.40)
+The chapel sound drains away to a heartbeat.
+
+**CAMERA:**
+Start: (00:45.40) | End: (00:50.00)
+Wide shot as Damien sways and drops to one knee.
+
+**MIRA (Terrified):**
+Start: (00:46.00) | End: (00:47.80)
+"Damien!"
+
+**CAMERA:**
+Start: (00:50.00) | End: (00:55.40)
+Close-up on Damien gripping Mira's hand.
+
+**DAMIEN (Weak, Urgent):**
+Start: (00:50.40) | End: (00:55.00)
+"Same powder. Same ring. That's how she killed him."
+
+**CAMERA:**
+Start: (00:55.40) | End: (01:00.20)
+Close-up on Celeste, backing toward the chapel doors.
+
+**CELESTE (Cold, Recovering):**
+Start: (00:55.80) | End: (00:59.80)
+"He's raving. Someone call a doctor, and lock the bride in her room."
+
+**CAMERA:**
+Start: (01:00.20) | End: (01:04.60)
+Close-up on Mira, Damien's head in her lap.
+
+**MIRA (Fierce):**
+Start: (01:00.60) | End: (01:04.20)
+"Nobody locks me anywhere. This is my house now."
+
+**CAMERA:**
+Start: (01:04.60) | End: (01:08.00)
+Push in on Damien's eyes closing.
+
+**SOUND FX:**
+Start: (01:04.60) | End: (01:08.00)
+The heartbeat slows, then stops.
+
+**CAMERA:**
+Start: (01:08.00) | End: (01:10.00)
+Cut to black.
+
+--- SCRIPT END ---

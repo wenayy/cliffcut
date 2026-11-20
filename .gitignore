@@ -1,0 +1,15 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+/data/
+/runs/
+.pytest_cache/
+docs/screens/
+uploads/
+.impeccable/
+docs/*.docx
+docs/PROJECT_NOTES.md
+docs/SUBMISSION_DRAFT.md
+docs/DEMO_VIDEO_SCRIPT.md
+.DS_Store

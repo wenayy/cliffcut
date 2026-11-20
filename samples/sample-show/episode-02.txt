@@ -1,0 +1,146 @@
+EPISODE NUMBER: Episode 2
+EPISODE LOGLINE: Celeste contests the will, and Mr. Hale reveals a clause: Mira keeps the house only if she marries within ten days, and the only suitor the will allows is Damien.
+CONTINUITY NOTES: Sample show for Cliffcut's public demo. Not Kuku content. Picks up minutes after episode 1 in Lord Vance's study.
+
+--- SCRIPT START ---
+
+SCENE 01
+Scene heading: INT. LORD VANCE'S STUDY – NIGHT
+Scene start: 00:00.00
+Scene end: 01:16.00
+
+Actions and dialogue:
+
+**CAMERA:**
+Start: (00:00.00) | End: (00:04.20)
+Wide shot of a dark wood-panelled study; Mira stands by the fire, still in her stained uniform.
+
+**CAMERA:**
+Start: (00:04.20) | End: (00:08.50)
+Medium shot of Celeste slamming a document on the desk.
+
+**CELESTE (Furious):**
+Start: (00:04.60) | End: (00:08.10)
+"This will is a forgery, and I'll see the maid in prison for it."
+
+**CAMERA:**
+Start: (00:08.50) | End: (00:13.00)
+Close-up on Mr. Hale, calm, turning a page.
+
+**MR. HALE (Dry):**
+Start: (00:08.90) | End: (00:12.60)
+"It was signed in front of three witnesses, Miss Vance. Including you."
+
+**CAMERA:**
+Start: (00:13.00) | End: (00:16.40)
+Close-up on Celeste, caught.
+
+**CAMERA:**
+Start: (00:16.40) | End: (00:22.40)
+Medium shot of Mr. Hale reading from the last page.
+
+**MR. HALE (Reading):**
+Start: (00:16.80) | End: (00:22.00)
+"There is a condition. The heir keeps the estate only if she is married within ten days."
+
+**CAMERA:**
+Start: (00:22.40) | End: (00:25.60)
+Close-up on Mira, stunned.
+
+**MIRA (Breathless):**
+Start: (00:22.70) | End: (00:25.20)
+"Married? To whom? I don't know anyone."
+
+**CAMERA:**
+Start: (00:25.60) | End: (00:31.20)
+Push in on Mr. Hale as he lowers the page.
+
+**MR. HALE (Careful):**
+Start: (00:26.00) | End: (00:30.80)
+"The will names one man. Lord Vance's ward. Damien."
+
+**CAMERA:**
+Start: (00:31.20) | End: (00:34.20)
+Wide shot as Damien steps out of the shadow by the bookshelves.
+
+**SOUND FX:**
+Start: (00:31.40) | End: (00:34.20)
+A log cracks in the fire.
+
+**CAMERA:**
+Start: (00:34.20) | End: (00:38.80)
+Close-up on Celeste, laughing coldly.
+
+**CELESTE (Cruel):**
+Start: (00:34.50) | End: (00:38.50)
+"Marry the maid? He'd rather burn this house to the ground."
+
+**CAMERA:**
+Start: (00:38.80) | End: (00:43.00)
+Medium two-shot of Damien and Mira by the fire.
+
+**DAMIEN (Flat):**
+Start: (00:39.20) | End: (00:42.40)
+"Ten days. A contract marriage. Nothing more."
+
+**CAMERA:**
+Start: (00:43.00) | End: (00:47.20)
+Close-up on Mira, searching his face.
+
+**MIRA (Wary):**
+Start: (00:43.30) | End: (00:46.80)
+"And what do you get from a marriage to a maid?"
+
+**CAMERA:**
+Start: (00:47.20) | End: (00:52.60)
+Close-up on Damien.
+
+**DAMIEN (Low):**
+Start: (00:47.60) | End: (00:52.20)
+"Access to this study. The truth about his death is somewhere in these walls."
+
+**CAMERA:**
+Start: (00:52.60) | End: (00:56.40)
+Medium shot of Celeste going still at the doorway.
+
+**ACTION:**
+Start: (00:52.60) | End: (00:56.40)
+Celeste's hand tightens on the door frame; she leaves without a word.
+
+**CAMERA:**
+Start: (00:56.40) | End: (01:01.20)
+Close-up on Mira taking the pen from Mr. Hale.
+
+**MIRA (Resolved):**
+Start: (00:56.80) | End: (01:00.20)
+"Then we marry. But I read every line first."
+
+**CAMERA:**
+Start: (01:01.20) | End: (01:06.00)
+Insert of the contract's last page; a second signature line is already signed in faded ink.
+
+**ACTION:**
+Start: (01:01.20) | End: (01:06.00)
+Mira's pen stops above the page.
+
+**CAMERA:**
+Start: (01:06.00) | End: (01:10.40)
+Close-up on Mira.
+
+**MIRA (Shaken):**
+Start: (01:06.30) | End: (01:09.80)
+"This was signed years ago. By my mother."
+
+**CAMERA:**
+Start: (01:10.40) | End: (01:14.00)
+Slow push in on Damien, who does not look surprised.
+
+**SOUND FX:**
+Start: (01:10.40) | End: (01:14.00)
+A deep piano note rings out and holds.
+
+**CAMERA:**
+Start: (01:14.00) | End: (01:16.00)
+Cut to black.
+
+--- SCRIPT END ---

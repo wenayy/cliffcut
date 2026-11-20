@@ -1,0 +1,178 @@
+EPISODE NUMBER: Episode 1
+EPISODE LOGLINE: Mira, a maid at the Vance mansion, is humiliated by heiress Celeste at her engagement party, until the family lawyer reads a will naming Mira as the late Lord Vance's daughter.
+CONTINUITY NOTES: Sample show written for Cliffcut's public demo. Not Kuku content. Establishes Mira (maid), Celeste (heiress), Damien (Celeste's brother), Mr. Hale (lawyer).
+
+--- SCRIPT START ---
+
+SCENE 01
+Scene heading: INT. VANCE MANSION BALLROOM – NIGHT
+Scene start: 00:00.00
+Scene end: 01:22.00
+
+Actions and dialogue:
+
+**CAMERA:**
+Start: (00:00.00) | End: (00:03.50)
+Wide shot of a glittering ballroom; guests in gowns raise champagne as a string quartet plays.
+
+**CAMERA:**
+Start: (00:03.50) | End: (00:06.00)
+Medium shot of Mira in a grey maid's uniform carrying a silver tray through the crowd.
+
+**ACTION:**
+Start: (00:03.80) | End: (00:06.00)
+Mira keeps her eyes down, weaving between guests without a sound.
+
+**CAMERA:**
+Start: (00:06.00) | End: (00:09.20)
+Close-up on Celeste in a red gown, watching Mira over her glass with a thin smile.
+
+**CELESTE (Sweet, Mocking):**
+Start: (00:06.40) | End: (00:08.90)
+"Careful, Mira. That tray costs more than you."
+
+**CAMERA:**
+Start: (00:09.20) | End: (00:12.40)
+Over-the-shoulder shot past Celeste as she tips her wine down the front of Mira's uniform.
+
+**SOUND FX:**
+Start: (00:09.60) | End: (00:10.40)
+Wine splashes; a glass clinks on the tray.
+
+**ACTION:**
+Start: (00:09.60) | End: (00:12.40)
+Guests turn and laugh; Mira freezes, wine dripping from her collar.
+
+**CAMERA:**
+Start: (00:12.40) | End: (00:15.80)
+Close-up on Mira's face, jaw tight, eyes wet but steady.
+
+**MIRA (Quiet, Controlled):**
+Start: (00:12.90) | End: (00:15.40)
+"I'll bring you another glass, Miss Vance."
+
+**CAMERA:**
+Start: (00:15.80) | End: (00:20.30)
+Medium two-shot as Celeste steps closer and lowers her voice.
+
+**CELESTE (Cold):**
+Start: (00:16.10) | End: (00:20.90)
+"You'll bring me nothing. After tonight you'll be gone from this house for good."
+
+**CAMERA:**
+Start: (00:20.30) | End: (00:23.60)
+Close-up on Damien at the edge of the room, watching, unreadable.
+
+**CAMERA:**
+Start: (00:23.60) | End: (00:27.00)
+Wide shot as the ballroom doors open and an older man in a dark coat enters with a leather folder.
+
+**ACTION:**
+Start: (00:24.00) | End: (00:27.00)
+The quartet falters; the guests fall quiet as Mr. Hale walks to the centre of the floor.
+
+**CAMERA:**
+Start: (00:27.00) | End: (00:31.50)
+Medium shot of Mr. Hale opening the folder.
+
+**MR. HALE (Formal, Grave):**
+Start: (00:27.40) | End: (00:31.20)
+"Forgive the intrusion. Lord Vance asked that his will be read tonight, before this engagement."
+
+**CAMERA:**
+Start: (00:31.50) | End: (00:34.80)
+Close-up on Celeste, smile gone.
+
+**CELESTE (Sharp):**
+Start: (00:31.80) | End: (00:34.30)
+"Then read it. Everyone knows the house is mine."
+
+**CAMERA:**
+Start: (00:34.80) | End: (00:41.00)
+Push in on Mr. Hale as he reads.
+
+**MR. HALE (Reading, Steady):**
+Start: (00:35.20) | End: (00:41.80)
+"The house, the estate and the Vance name I leave to my only daughter, born to Anna Reyes."
+
+**CAMERA:**
+Start: (00:41.00) | End: (00:44.20)
+Close-up on Mira; the tray trembles in her hands.
+
+**SOUND FX:**
+Start: (00:41.20) | End: (00:44.20)
+A low cello note swells.
+
+**CAMERA:**
+Start: (00:44.20) | End: (00:47.60)
+Medium shot of Celeste, laughing in disbelief.
+
+**CELESTE (Scornful):**
+Start: (00:44.50) | End: (00:47.30)
+"Anna Reyes was a maid. She's been dead for years."
+
+**CAMERA:**
+Start: (00:47.60) | End: (00:52.00)
+Wide shot as Mr. Hale turns and looks straight at Mira across the room.
+
+**MR. HALE (Gentle, Certain):**
+Start: (00:48.00) | End: (00:51.60)
+"Her daughter is standing right there. Miss Mira Reyes."
+
+**CAMERA:**
+Start: (00:52.00) | End: (00:55.20)
+Extreme close-up on Mira's eyes.
+
+**ACTION:**
+Start: (00:52.00) | End: (00:55.20)
+The silver tray slips from Mira's hands.
+
+**SOUND FX:**
+Start: (00:53.40) | End: (00:55.20)
+The tray crashes on the marble floor.
+
+**CAMERA:**
+Start: (00:55.20) | End: (01:00.80)
+Close-up on Celeste, face white with rage.
+
+**CELESTE (Shaking, Furious):**
+Start: (00:55.60) | End: (01:00.40)
+"No. A maid does not take my house. I will bury her first."
+
+**CAMERA:**
+Start: (01:00.80) | End: (01:05.00)
+Medium shot of Damien crossing the floor toward Mira.
+
+**DAMIEN (Low, Unreadable):**
+Start: (01:01.40) | End: (01:04.70)
+"Don't sign anything tonight. Not one page."
+
+**CAMERA:**
+Start: (01:05.00) | End: (01:09.40)
+Close-up on Mira looking up at him.
+
+**MIRA (Whispering):**
+Start: (01:05.40) | End: (01:07.60)
+"Why would you help me?"
+
+**CAMERA:**
+Start: (01:09.40) | End: (01:14.80)
+Close-up on Damien; a long beat before he answers.
+
+**DAMIEN (Quiet):**
+Start: (01:10.80) | End: (01:13.90)
+"Because my father didn't die of a weak heart."
+
+**CAMERA:**
+Start: (01:14.80) | End: (01:20.00)
+Slow push in on Mira's face as the words land.
+
+**SOUND FX:**
+Start: (01:15.00) | End: (01:20.00)
+A sustained string drone rises to a peak.
+
+**CAMERA:**
+Start: (01:20.00) | End: (01:22.00)
+Cut to black.
+
+--- SCRIPT END ---

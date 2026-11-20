@@ -1,0 +1,60 @@
+@import "tailwindcss";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+@import "@fontsource/courier-prime/400.css";
+@import "@fontsource/courier-prime/700.css";
+
+@theme {
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, monospace;
+  --font-script: "Courier Prime", "Courier New", monospace;
+
+  /* graphite ramp, a hair warm: the paper of a lined script, at night */
+  --color-ink-0: #0e0e0f;
+  --color-ink-1: #131314;
+  --color-ink-2: #19191a;
+  --color-ink-3: #222224;
+  --color-ink-4: #2b2b2e;
+  --color-fg-1: #ececea;
+  --color-fg-2: #a3a3a0;
+  --color-fg-3: #858582;
+
+  /* revision-page tints: each hook type gets the colour of a script revision */
+  --color-rev-blue: #8aaee6;
+  --color-rev-pink: #e295b0;
+  --color-rev-yellow: #e2cd7a;
+  --color-rev-green: #93c7a0;
+  --color-rev-gold: #d6a552;
+
+  /* red pencil: reserved for cut marks */
+  --color-pencil: #e2553f;
+
+  --color-ok: #4cc38a;
+  --color-bad: #e5484d;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body {
+    background: var(--color-ink-1);
+    color: var(--color-fg-1);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 20px;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: #e2553f47; color: var(--color-fg-1); }
+  :focus-visible { outline: 2px solid #ececea8c; outline-offset: 2px; }
+  * { scrollbar-width: thin; scrollbar-color: #2b2b2e transparent; }
+  input, select, textarea { caret-color: var(--color-pencil); }
+  button:not(:disabled) { cursor: pointer; }
+}
+
+@utility hairline { border-color: rgb(236 236 234 / 0.08); }
+@utility tnum { font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

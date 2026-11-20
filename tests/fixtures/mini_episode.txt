@@ -1,0 +1,46 @@
+EPISODE NUMBER: Episode 3
+EPISODE LOGLINE: A test episode written for this repo (not Kuku content).
+CONTINUITY NOTES: Synthetic fixture.
+
+--- SCRIPT START ---
+
+SCENE 01
+Scene heading: INT. HALL – NIGHT
+Scene start: 00:00.00
+Scene end: 00:30.00
+
+Actions and dialogue:
+
+**CAMERA:**
+Start: (00:00.00) | End: (00:04.00)
+Wide shot of the hall.
+
+**CAMERA:**
+Start: (00:04.00) | End: (00:08.00)
+Close-up on Mara.
+
+**MARA (Cold):**
+Start: (00:04.50) | End: (00:09.00)
+"You lied to me about the ring."
+
+**CAMERA:**
+Start: (00:08.00) | End: (00:12.00)
+Reverse on Tom, who freezes.
+
+**TOM (Shaken):**
+Start: (00:10.00) | End: (00:11.00)
+"Who told you?"
+
+**SOUND FX:**
+Start: (00:11.00) | End: (00:16.50)
+A low drone swells.
+
+**CAMERA:**
+Start: (00:12.00) | End: (00:16.00)
+Push in on Mara's face.
+
+**CAMERA:**
+Start: (00:16.00) | End: (00:30.00)
+Cut to black.
+
+--- SCRIPT END ---
