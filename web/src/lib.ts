@@ -29,7 +29,7 @@ export interface AiChecks {
 }
 export interface RunPromo {
   rank?: number; title: string; hook: string; cliffhanger: string; why: string; hook_type: HookType
-  scores: Record<string, number>; score?: number; segments: SegOut[]; length: number; checks: Check[]
+  scores: Record<string, number>; score?: number; breakdown?: { axis: string; points: number; max: number; why: string }[]; segments: SegOut[]; length: number; checks: Check[]
   problems: string[]; code_ok: boolean; ai_checks?: AiChecks; stitched?: boolean; repaired?: boolean
   source_episode?: number; line?: string; mood?: string; for_episode?: number; from_episode?: number
 }

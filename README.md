@@ -47,7 +47,8 @@ flowchart LR
   - Code: 20–60 s, hook within 3 s, holds on the reaction, clean cuts.
   - Fresh AI calls: *a stranger can follow it*, *the cliffhanger is still open at the cut*, *no spoiler*.
   - Failures are shown with their reasons, never hidden.
-- **Ranking** weighs hook 30%, cliffhanger 25%, makes sense alone 20%, emotion 15%, clarity 10%, minus penalties from the judges. Earlier episodes win ties, and the top 10 is spread across hook types (identity reversal, forced marriage, humiliation → revenge, forbidden romance) so a team can test different angles.
+- **Scores are earned, not guessed.** The AI never gives a number. It answers concrete questions with evidence from the script: which conflict it opens on, the exact question left at the cut, whether it needs backstory, whether power shifts. Code awards fixed points for those answers and for what it measures itself: how fast the hook lands, intense emotion tags and actions in the script, how many people speak, whether a lead is in it, the length, and the reaction hold. Every point is shown with its reason, for example *"4/4 Opens on a humiliation at 0.0 s"* or *"0/2 Last line isn't a question"*.
+- **Ranking** weighs hook 30%, cliffhanger 25%, makes sense alone 20%, emotion 15%, clarity 10%, with spoilers penalised. Earlier episodes win ties, and the top 10 is spread across hook types (identity reversal, forced marriage, humiliation → revenge, forbidden romance) so a team can test different angles. A **Ranking and quality** page answers the brief's two questions: what to post first and why, and where the tool picks badly.
 - **Whole-show trailers** start from a story map: the AI finds the five turning points (opportunity, change of plans, point of no return, major setback, climax) plus mood and themes, then cuts toward the climax without showing it. Code trims over-long pieces in the middle, never at the hook or the final cliffhanger.
 - **The editor's voice:**
   - an editor brief ("lead with the revenge arc");
@@ -60,11 +61,11 @@ flowchart LR
 | | |
 |---|---|
 | ![New run](docs/media/new-run.png) | ![A promo](docs/media/promo.png) |
-| **New run.** Scripts, model, what to make, category, main characters, editor brief | **The lined script.** Grey lines are camera shots; the red bracket is the promo (IN → OUT); the right panel has why it works, scores, checks, a video preview and shot-by-shot editing |
+| **New run.** Scripts, model, what to make, category, main characters, editor brief | **The promo, as it plays.** What plays, in order, timed from 0:00, from the hook to "cut here". The right panel says why it's ranked where it is, the reason for every score point, and the checks. "Whole episode" shows it in context |
 | ![Trailer](docs/media/trailer.png) | ![Compare](docs/media/compare.png) |
 | **Whole-show trailers** built on the story map, with mood | **Compare models.** Every model on the same checks, and the moments several models agreed on |
 
-- **Watch it.** Attach the episode videos (they stay on your computer, nothing is uploaded) and the preview plays the actual promo, piece by piece.
+- **Watch it (optional).** The scripts are enough. If you also have the episode videos, attach them (they stay on your computer, nothing is uploaded) and the promo plays piece by piece.
 - **Shots in this cut.** Untick any shot to drop it, or press "Remove dead air" (shots where nobody speaks and nothing happens). The checks re-run live.
 - **Export** an EDL for Premiere or DaVinci Resolve, a CSV, or JSON. "Export all as CSV" gives the raw output for a whole run.
 - **Cut by hand:** `I` / `O` mark in and out, `↵` cuts, `[` `]` change episode.

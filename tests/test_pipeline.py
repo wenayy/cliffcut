@@ -193,3 +193,20 @@ def test_leads_are_detected_and_named_in_the_prompt():
     seen = []
     run_show(ReplayProvider(lambda s, u: seen.append(u) or json.dumps({"promos": []})), {1: EPS[1]}, "S", RunConfig(stitch=False, judge=False))
     assert "LEAD CHARACTERS:" in seen[0] and "MIRA" in seen[0]
+
+
+def test_scores_come_from_evidence_and_measurements_not_model_numbers():
+    from promo.pipeline import build
+    from promo.rubric import apply_rubric
+    L = lines(1)   # sample ep1: Celeste mocks Mira ... Hale reveals the heir
+    item = build({"segments": [{"first": L[0], "last": L[6]}]}, EPS, 20, 60)
+    item["evidence"] = {"opens_on": L[0], "conflict_type": "humiliation", "ends_on": L[6],
+                        "open_question": "Is the maid really the heir?", "needs_backstory": False,
+                        "stakes": "Mira could lose her place, or gain the house", "power_shift": True}
+    apply_rubric(item, EPS, ["MIRA", "CELESTE"])
+    assert item["scores"]["hook"] >= 8 and item["scores"]["emotion"] >= 6
+    assert all("why" in b and b["max"] > 0 for b in item["breakdown"])
+    weak = build({"segments": [{"first": L[0], "last": L[6]}]}, EPS, 20, 60) | {"evidence": {}}
+    apply_rubric(weak, EPS, [])
+    assert weak["scores"]["hook"] < item["scores"]["hook"]          # no evidence, fewer points
+    assert any("No charged opening" in b["why"] for b in weak["breakdown"])

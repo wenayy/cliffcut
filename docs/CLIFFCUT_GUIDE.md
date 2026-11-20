@@ -7,6 +7,23 @@ All screenshots use **our own demo show**, *The Maid Who Owned the House*, which
 
 # Part 0. Plain answers to the big questions
 
+> **Updated screen (latest):** when you open a promo, the centre now shows **the promo itself**: what plays, in order, timed from 0:00, with "Starts here: the hook" at the top and "Cut here: the cliffhanger" at the end. **Whole episode** shows it in context, with the promo's lines tinted between "Promo starts" and "Promo ends" markers. Camera notes are hidden unless you tick "Camera notes". The older side lines and brackets in some screenshots below are gone.
+
+## "How are the scores decided? They look random."
+
+They were: the AI used to write its own 1–10 numbers. **Now the AI never gives a number.** It answers questions with evidence from the script, and code awards fixed points. Each promo shows every point and its reason.
+
+| Score | Points come from |
+|---|---|
+| **Stops the scroll (hook)** | Opens on a real conflict (accusation, humiliation, reveal, threat, violence, rejection, confession, betrayal) within 3 s: 4. An intense emotion tag or action in the first 3 s (furious, slaps, gasps): 2. Lands without backstory: 2. First beat within 1 s: 2 |
+| **Leaves them hanging (cliffhanger)** | Cuts on a named open question near the end: 4. Last line is a question: 2 (exclamation: 1). Holds on the reaction at least 0.5 s: 2. The judge model confirms the answer comes after the cut: 2 |
+| **Makes sense to a stranger** | Stakes stated with no backstory needed: 4. Two or fewer people speak: 3 (fewer points for more). A lead character speaks: 3 |
+| **Emotional punch** | Intense beats in the script (emotion tags, slaps, screams, tears): 2 each, up to 6. Someone's power or status flips: 4 |
+| **Easy to follow** | Length in the 30–55 s sweet spot: 4. One continuous piece: 3. The judge model says a stranger understood it: 3 |
+
+Each score is out of 10, and the five combine as hook 30%, cliffhanger 25%, makes sense alone 20%, emotion 15%, clarity 10%. *Honest limit:* "makes sense" and "emotion" still come out high for most promos in this show, because the scripts are dense with emotion tags. The point is that every number can now be traced to a line in the script.
+
+
 ## "Doesn't the editor still have to watch everything? Then what does this solve?"
 
 No. That's the whole point.

@@ -193,22 +193,33 @@ export function Inspector({ promo, result, checking, error, eps, limits, total, 
           {!ai && <p className="text-[13px] text-fg-3">You cut this one by hand, so there is no AI explanation.</p>}
         </Section>
 
-        {/* how good the model thinks it is */}
+        {/* scores, each point with its reason */}
         {ai && Object.keys(ai.scores ?? {}).length > 0 && (
           <Section title="Scores, out of 10" aside={promo.foundBy && promo.foundBy > 1 ? `also picked by ${promo.foundBy - 1} other model${promo.foundBy > 2 ? 's' : ''}` : undefined}>
-            <div className="space-y-2.5">
+            <p className="text-[12px] leading-[18px] text-fg-3">{ai.breakdown ? 'Not the AI\'s opinion: each point is earned by something in the script, listed under the bar.' : 'This run is older: these numbers are the model\'s own estimate.'}</p>
+            <div className="space-y-4">
               {Object.entries(SCORE_LABEL).map(([k, label]) => {
                 const v = ai.scores[k]
                 if (v === undefined) return null
+                const why = (ai.breakdown ?? []).filter(b => b.axis === k)
                 return (
                   <div key={k}>
-                    <div className="flex justify-between text-[12px]"><span className="text-fg-2">{label}</span><span className="font-mono text-fg-1 tnum">{v}</span></div>
+                    <div className="flex justify-between text-[12px]"><span className="text-fg-1">{label}</span><span className="font-mono text-fg-1 tnum">{Number(v).toFixed(v % 1 ? 1 : 0)}</span></div>
                     <div className="mt-1 h-1 rounded-full bg-ink-3"><div className="h-full rounded-full bg-fg-2" style={{ width: `${v * 10}%` }} /></div>
+                    {why.length > 0 && (
+                      <ul className="mt-1.5 space-y-0.5">
+                        {why.map((b, i) => (
+                          <li key={i} className="grid grid-cols-[34px_1fr] gap-x-1.5 text-[11px] leading-4">
+                            <span className={`font-mono tnum ${b.points >= b.max ? 'text-ok' : b.points > 0 ? 'text-fg-2' : 'text-bad'}`}>{b.points}/{b.max}</span>
+                            <span className="text-fg-3">{b.why}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 )
               })}
             </div>
-            <p className="text-[12px] leading-[18px] text-fg-3">The rank combines these (hook counts most), then takes points off for any check below that fails.</p>
           </Section>
         )}
 

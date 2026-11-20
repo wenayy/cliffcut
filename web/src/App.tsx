@@ -2,7 +2,7 @@ import { ChartColumn, ChevronDown, Clapperboard, Film, Layers, Lock, Play, Scrol
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Group, Panel, Separator } from 'react-resizable-panels'
 import { Inspector } from './components/Inspector'
-import { Key, LinedScript } from './components/LinedScript'
+import { Key, LinedScript, PromoScript } from './components/LinedScript'
 import { Logo } from './components/Logo'
 import { ModelsTable } from './components/ModelsTable'
 import { QualityReport, rankReason } from './components/QualityReport'
@@ -36,6 +36,8 @@ export default function App() {
   const [result, setResult] = useState<CheckResult | null>(null)
   const [checking, setChecking] = useState(false)
   const [checkErr, setCheckErr] = useState<string | null>(null)
+  const [centre, setCentre] = useState<'promo' | 'episode'>('promo')
+  const [showCamera, setShowCamera] = useState(false)
   const [videos, setVideos] = useState<Record<number, string>>({})   // episode -> local object URL (never uploaded)
   const attach = (files: File[]) => setVideos(v => {
     const next = { ...v }
@@ -199,7 +201,7 @@ export default function App() {
   }, [])
 
   const openPromo = (p: PromoDraft) => {
-    setActiveId(p.id)
+    setActiveId(p.id); setCentre('promo')
     if (p.segments[0]) setEpNo(p.segments[0].episode)
     setMarks({})
   }
@@ -207,9 +209,6 @@ export default function App() {
   if (fatal) return <Fatal message={fatal} />
 
   const segsHere = result?.segments.filter(s => s.episode === epNo) ?? []
-  const hookId = active && result?.segments[0]?.episode === epNo ? result.segments[0].first_event : undefined
-  const lastSeg = result?.segments.at(-1)
-  const cliffId = active && lastSeg?.episode === epNo ? lastSeg.last_event : undefined
   const markLen = (() => {
     if (!episode || !marks.in) return null
     const a = episode.events.find(e => e.id === marks.in), b = episode.events.find(e => e.id === (marks.out ?? marks.in))
@@ -257,7 +256,7 @@ export default function App() {
         </div>
         <nav className="px-2 space-y-0.5" aria-label="Sections">
           {nav.map(n => (
-            <button key={n.id} onClick={() => setView(n.id)}
+            <button key={n.id} onClick={() => { setView(n.id); if (n.id === 'episodes') setCentre('episode') }}
               className={`w-full h-8 px-2.5 flex items-center gap-2.5 rounded-[8px] text-[13px] transition-colors duration-150 ${
                 view === n.id ? 'bg-ink-3 text-fg-1 shadow-[inset_0_1px_0_rgb(255_255_255/0.05)]' : 'text-fg-2 hover:bg-ink-2 hover:text-fg-1'}`}>
               <n.icon size={16} strokeWidth={1.5} className="shrink-0" />
@@ -317,7 +316,7 @@ export default function App() {
               ? <Empty title="No teasers yet" body="Each run makes one 8–20 s teaser per episode, cut from the next episode, to play at the end of this one. It never shows the next episode's own ending." />
               : teasers.map(p => <ListItem key={p.id} p={p} active={activeId === p.id} onClick={() => openPromo(p)} label={`End of ep ${p.ai?.for_episode}`} />))}
             {view === 'episodes' && show?.episodes.map(e => (
-              <button key={e.number} onClick={() => { setEpNo(e.number); setActiveId(null) }}
+              <button key={e.number} onClick={() => { setEpNo(e.number); setActiveId(null); setCentre('episode') }}
                 className={`w-full text-left rounded-[10px] px-3 py-2.5 grid grid-cols-[28px_1fr_auto] gap-x-1 transition-colors duration-150 ${epNo === e.number ? 'bg-ink-3' : 'hover:bg-ink-2'}`}>
                 <span className="font-mono text-[12px] text-fg-3 tnum pt-px">{e.number}</span>
                 <span className="text-[13px] text-fg-2 line-clamp-2 leading-[18px]">{e.logline || e.title}</span>
@@ -345,17 +344,43 @@ export default function App() {
             : (
             <>
               <header className="h-14 shrink-0 px-6 flex items-center gap-4 border-b hairline">
-                <div className="min-w-0">
-                  <p className="text-[14px] text-fg-1">Episode {epNo}{episode?.format === 'screenplay' ? <span className="ml-2 text-[12px] text-fg-3">timing estimated</span> : null}</p>
-                  <p className="text-[12px] text-fg-3 truncate max-w-[60ch]" title={episode?.logline}>{episode?.logline}</p>
+                {active && result && centre === 'promo' ? (
+                  <div className="min-w-0">
+                    <p className="text-[14px] text-fg-1 truncate">{active.title}</p>
+                    <p className="text-[12px] text-fg-3">What plays, in order · {result.length.toFixed(1)} s</p>
+                  </div>
+                ) : (
+                  <div className="min-w-0">
+                    <p className="text-[14px] text-fg-1">Episode {epNo}{episode?.format === 'screenplay' ? <span className="ml-2 text-[12px] text-fg-3">timing estimated</span> : null}</p>
+                    <p className="text-[12px] text-fg-3 truncate max-w-[60ch]" title={episode?.logline}>{episode?.logline}</p>
+                  </div>
+                )}
+                <div className="ml-auto flex items-center gap-3">
+                  <label className="flex items-center gap-1.5 text-[12px] text-fg-3 cursor-pointer whitespace-nowrap">
+                    <input type="checkbox" checked={showCamera} onChange={e => setShowCamera(e.target.checked)} className="accent-[var(--color-pencil)]" />
+                    Camera notes
+                  </label>
+                  {active && (
+                    <div role="radiogroup" aria-label="View" className="inline-flex rounded-[8px] border hairline bg-ink-2 p-0.5">
+                      {([['promo', 'The promo'], ['episode', 'Whole episode']] as const).map(([v, l]) => (
+                        <button key={v} role="radio" aria-checked={centre === v} onClick={() => setCentre(v)}
+                          className={`h-7 rounded-[6px] px-2.5 text-[12px] whitespace-nowrap transition-colors duration-150 ${centre === v ? 'bg-ink-4 text-fg-1' : 'text-fg-2 hover:text-fg-1'}`}>{l}</button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                {episode && <span className="ml-auto font-mono text-[11px] text-fg-3 tnum">{tc(episode.duration)}</span>}
               </header>
-              <ScriptLegend />
-              <div className="flex-1 overflow-y-auto pt-3">
-                {episode
-                  ? <LinedScript episode={episode} segments={segsHere} hookId={hookId} cliffId={cliffId} marks={marks} focusId={focusId} onFocus={setFocusId}
-                      others={[...promos, ...trailers, ...teasers].filter(p => p.id !== activeId && p.ai).flatMap(p => p.ai!.segments.filter(sg => sg.episode === epNo).map(sg => ({ start: sg.start_s, end: sg.end_s, title: p.title })))} />
+              <p className="shrink-0 border-b hairline px-6 py-2 text-[12px] text-fg-3">
+                {active && centre === 'promo'
+                  ? 'Everything below plays, in this order. Times count from the start of the promo.'
+                  : active ? 'Tinted lines are in the promo, between the red markers. Click a line and press I, then O, to cut your own.'
+                  : 'Click a line, press I for in and O for out, then Enter, to cut your own promo.'}
+              </p>
+              <div className="flex-1 overflow-y-auto">
+                {active && result && centre === 'promo'
+                  ? <PromoScript segs={result.segments} eps={eps} showCamera={showCamera} />
+                  : episode
+                  ? <LinedScript episode={episode} segments={segsHere} marks={marks} focusId={focusId} onFocus={setFocusId} showCamera={showCamera} />
                   : <p className="p-6 text-fg-3 text-[13px]">{show ? `Loading episode ${epNo}` : 'Loading show'}</p>}
               </div>
               {marks.in && (
@@ -385,7 +410,7 @@ export default function App() {
           {active
             ? <Inspector promo={active} result={result} checking={checking} error={checkErr} eps={eps} limits={limits}
                 total={active.kind === 'teaser' ? teasers.length : active.kind === 'trailer' ? trailers.length : promos.filter(p => p.source !== 'editor').length}
-                onJump={n => setEpNo(n)}
+                onJump={n => { setEpNo(n); setCentre('episode') }}
                 rankWhy={active.ai && active.kind !== 'teaser' ? rankReason(active.ai, active.foundBy) : undefined}
                 onSegments={segments => update({ ...active, segments })}
                 videos={videos} onAttach={attach}
@@ -398,33 +423,6 @@ export default function App() {
         </Panel>
         </>}
       </Group>
-      )}
-    </div>
-  )
-}
-
-/* What the lined script's marks mean, always visible, with a short guide behind one click. */
-function ScriptLegend() {
-  const [open, setOpen] = useState(() => { try { return localStorage.getItem('cliffcut.guide.seen') !== '1' } catch { return true } })
-  const close = () => { setOpen(false); try { localStorage.setItem('cliffcut.guide.seen', '1') } catch { /* */ } }
-  return (
-    <div className="shrink-0 border-b hairline px-6 py-2">
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[12px] text-fg-3">
-        <span className="flex items-center gap-2"><span className="h-3.5 w-[1.5px] bg-fg-2/70" />Camera shot (numbered)</span>
-        <span className="flex items-center gap-2"><span className="h-3.5 w-[2px] rounded-full bg-pencil" />The selected promo: everything inside plays</span>
-        <span className="flex items-center gap-2"><span className="h-3.5 w-px bg-fg-3/60" />Other promos here</span>
-        <span className="flex items-center gap-2"><span className="font-mono text-[10px] text-pencil">IN · OUT</span>Where it starts and ends</span>
-        <span className="flex items-center gap-2"><span className="text-pencil">Hook · Cliffhanger</span></span>
-        <button onClick={() => setOpen(o => !o)} className="ml-auto text-fg-2 hover:text-fg-1 underline underline-offset-2 decoration-fg-3/50">{open ? 'Hide guide' : 'How to read this'}</button>
-      </div>
-      {open && (
-        <div className="mt-2 mb-1 grid gap-x-8 gap-y-2 rounded-[10px] bg-ink-2 px-4 py-3 text-[13px] leading-5 text-fg-2 md:grid-cols-2">
-          <p><span className="text-fg-1">This is the episode's script</span>, line by line, with the time each line starts on the left.</p>
-          <p><span className="text-fg-1">Grey lines on the left</span> are the camera shots. Each new number is a cut the show's editor already made.</p>
-          <p><span className="text-fg-1">The red bracket on the right</span> is the promo you selected: everything from IN to OUT plays, in order, nothing skipped. To skip something, untick its shot in the right panel; the promo then splits into pieces, each with its own bracket. Thin grey lines mark other promos in this episode; pick them from the list.</p>
-          <p><span className="text-fg-1">Small grey text starting "Camera:"</span> describes what the shot shows. Action and sound lines are labelled too, and they count: a slap or a gasp can be the hook. <span className="text-fg-1">Faded lines</span> (see-through) are not in the promo. <span className="text-pencil">Hook</span> marks the opening moment, <span className="text-pencil">Cliffhanger</span> the moment it cuts on.</p>
-          <p className="md:col-span-2"><span className="text-fg-1">To cut your own:</span> click a line, press <Key>I</Key> for in, move with <Key>↓</Key>, press <Key>O</Key> for out, then choose to make a new promo or add it as another piece. <button onClick={close} className="ml-1 text-fg-1 underline underline-offset-2">Got it</button></p>
-        </div>
       )}
     </div>
   )

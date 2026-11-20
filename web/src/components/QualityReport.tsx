@@ -11,6 +11,8 @@ export function rankReason(p: RunPromo, foundBy?: number): string {
   const base = Object.entries(WEIGHT).reduce((a, [k, w]) => a + w * (p.scores?.[k] ?? 5), 0)
   const top = Object.entries(p.scores ?? {}).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k, v]) => `${NAME[k] ?? k} ${v}`)
   const bits = [`combined score ${base.toFixed(1)}/10 (strongest: ${top.join(', ')})`]
+  const lost = (p.breakdown ?? []).filter(b => b.points < b.max).sort((a, b) => (b.max - b.points) - (a.max - a.points))[0]
+  if (lost) bits.push(`loses most on “${lost.why}” (${lost.points}/${lost.max})`)
   const j = p.ai_checks
   if (j) {
     const lost = [!j.cliffhanger_open && 'answers its own cliffhanger (−2)', j.spoiler && 'possible spoiler (−3)', j.cold_viewer.understandable === false && 'hard for a stranger to follow (−1.5)'].filter(Boolean)
@@ -62,8 +64,10 @@ export function QualityReport({ run, foundBy, onOpen }: { run: Run | null; found
           How the rank is decided:
         </p>
         <ol className="list-decimal pl-5 space-y-1 text-[13px] leading-5 text-fg-3 max-w-[75ch]">
-          <li>The model scores each promo 1–10, combined as hook 30%, cliffhanger 25%, makes sense alone 20%, emotion 15%, clarity 10%.</li>
-          <li>Independent judge models take points off for answering its own cliffhanger, spoilers, or being hard to follow.</li>
+          <li>The AI never gives a number. It answers concrete questions with evidence from the script: what conflict it opens on, the exact question left at the cut, whether it needs backstory, whether power shifts.</li>
+          <li>Code awards fixed points for those answers and for what it measures itself: how fast the hook lands, intense emotions and actions in the script, how many people speak, whether a lead is in it, the length, and the reaction hold.</li>
+          <li>Independent judge models add or remove points: is the cliffhanger still open, can a stranger follow it, is anything spoiled.</li>
+          <li>The five scores combine as hook 30%, cliffhanger 25%, makes sense alone 20%, emotion 15%, clarity 10%.</li>
           <li>Earlier episodes win ties.</li>
           <li>The top 10 is spread across hook types, so you test different angles.</li>
         </ol>

@@ -21,6 +21,7 @@ from typing import Callable
 
 from .cuts import Promo, Segment, build_segment, check_promo
 from .providers import ProviderError, ask_json
+from .rubric import apply_rubric
 from .timeline import Episode, stamp
 
 PROMO_MIN, PROMO_MAX = 20.0, 60.0
@@ -115,10 +116,11 @@ Also pick ONE TEASER from this episode: {TEASER_MIN:.0f}–{TEASER_MAX:.0f} seco
 
 Hook types: identity_reversal (hidden identity, status flip), forced_marriage (contract or forced marriage), humiliation_revenge (public humiliation, revenge), forbidden_romance (forbidden or taboo love), other.
 
-Refer to moments ONLY by the event ids in [brackets]. Never write timestamps. Scores are 1–10, be harsh: 8+ means you would bet ad money on it.
+Refer to moments ONLY by the event ids in [brackets]. Never write timestamps. Do NOT give scores: answer the evidence questions honestly; code scores them.
+Evidence: opens_on = id of the charged moment the promo opens on; conflict_type = accusation | humiliation | reveal | threat | violence | rejection | confession | betrayal | other | none; ends_on = id of the moment it cuts on; open_question = the exact question a viewer is left with at the cut ("" if none); needs_backstory = true if a stranger needs earlier episodes to get it; stakes = who is hurt and what they could lose, one line; power_shift = true if someone's status flips inside the promo.
 
 Reply with JSON only:
-{{"promos":[{{"title":"3-6 word name","segments":[{{"first":"id","last":"id"}}],"hook":"what happens in the first 3 s","cliffhanger":"the question left open at the cut","why":"one line on why it works","hook_type":"one of the types","scores":{{"hook":0,"cliffhanger":0,"standalone":0,"emotion":0,"clarity":0}}}}],
+{{"promos":[{{"title":"3-6 word name","segments":[{{"first":"id","last":"id"}}],"hook":"what happens in the first 3 s","cliffhanger":"the question left open at the cut","why":"one line on why it works","hook_type":"one of the types","evidence":{{"opens_on":"id","conflict_type":"...","ends_on":"id","open_question":"...","needs_backstory":false,"stakes":"...","power_shift":false}}}}],
 "teaser":{{"first":"id","last":"id","line":"the line or moment it hangs on","why":"one line"}}}}"""
 
 def trailer_system(lo: float, hi: float) -> str:
@@ -133,7 +135,7 @@ Never show how the series ends or reveal its final twist. It must make sense to 
 Build it from the story's turning points (given below) up to, but never including, the climax. Convey the show's mood.
 You may open with 2-3 FLASH pieces of 1-2 s each (a gasp, a slap, a tear, a ring held out): a burst of emotion before the story beats.
 Pieces should be short (1-2 s for flashes, 8-18 s otherwise). Use ONLY the event ids given. Reply with JSON only:
-{{{{"trailers":[{{{{"title":"3-6 word name","segments":[{{{{"first":"id","last":"id"}}}}],"hook":"...","cliffhanger":"...","why":"...","mood":"...","hook_type":"...","scores":{{{{"hook":0,"cliffhanger":0,"standalone":0,"emotion":0,"clarity":0}}}}}}}}]}}}}"""
+{{{{"trailers":[{{{{"title":"3-6 word name","segments":[{{{{"first":"id","last":"id"}}}}],"hook":"...","cliffhanger":"...","why":"...","mood":"...","hook_type":"...","evidence":{{{{"opens_on":"id","conflict_type":"...","ends_on":"id","open_question":"...","needs_backstory":false,"stakes":"...","power_shift":false}}}}}}}}]}}}}"""
 
 
 TRAILER_SYSTEM = trailer_system(60, 90)
@@ -233,13 +235,13 @@ def build(raw: dict, eps: dict[int, Episode], lo: float, hi: float) -> dict:
 
 
 def _clean(raw: dict) -> dict:
-    sc = raw.get("scores") or {}
     ht = raw.get("hook_type") if raw.get("hook_type") in HOOK_TYPES else "other"
     return {"title": str(raw.get("title") or "")[:80], "hook": str(raw.get("hook") or ""),
             "cliffhanger": str(raw.get("cliffhanger") or ""), "why": str(raw.get("why") or ""),
             "mood": str(raw.get("mood") or ""),
             "hook_type": ht,
-            "scores": {k: max(1, min(10, int(float(sc.get(k, 5) or 5)))) for k in WEIGHTS}}
+            "evidence": raw.get("evidence") if isinstance(raw.get("evidence"), dict) else {},
+            "scores": {k: 5.0 for k in WEIGHTS}}   # replaced by the rubric once the cut exists
 
 
 def _failures(item: dict) -> str:
@@ -424,12 +426,8 @@ def score(p: dict) -> float:
     s = sum(WEIGHTS[k] * p["scores"].get(k, 5) for k in WEIGHTS)
     j = p.get("ai_checks")
     if j:
-        if not j["cliffhanger_open"]:
-            s -= 2.0
         if j["spoiler"]:
             s -= 3.0
-        if j["cold_viewer"].get("understandable") is False:
-            s -= 1.5
         sw = j["cold_viewer"].get("swipe_second")
         if isinstance(sw, (int, float)) and sw < p["length"] * 0.5:
             s -= 1.0
@@ -492,7 +490,7 @@ def run_show(provider, eps: dict[int, Episode], show_title: str, cfg: RunConfig 
                 errors.append({"episode": n, "error": f"{type(err).__name__}: {err}"})
             say("find", k, len(targets), f"Episode {n}")
 
-    candidates = [p for r in found for p in r["promos"]]
+    candidates = [apply_rubric(p, eps, cfg.leads) for r in found for p in r["promos"]]
     passing = [p for p in candidates if p["code_ok"]]
     rejected = [p for p in candidates if not p["code_ok"]]
     teasers = sorted([r["teaser"] for r in found if r["teaser"]], key=lambda t: t["for_episode"]) if cfg.teasers else []
@@ -505,6 +503,7 @@ def run_show(provider, eps: dict[int, Episode], show_title: str, cfg: RunConfig 
             for k, f in enumerate(as_completed(futs), 1):
                 try:
                     finalists[futs[f]]["ai_checks"] = f.result()
+                    apply_rubric(finalists[futs[f]], eps, cfg.leads)
                 except ProviderError as err:
                     if err.fatal:
                         raise
@@ -532,13 +531,14 @@ def run_show(provider, eps: dict[int, Episode], show_title: str, cfg: RunConfig 
                     raise
             except Exception:
                 story = None
-            st = stitch(provider, ranked, eps, cfg, story)
+            st = [apply_rubric(t, eps, cfg.leads) for t in stitch(provider, ranked, eps, cfg, story)]
             rejected += [p for p in st if not p["code_ok"]]
             trailers = [p for p in st if p["code_ok"]]
             if cfg.judge:
                 for t in trailers:
                     try:
                         t["ai_checks"] = judge(provider, t, eps)
+                        apply_rubric(t, eps, cfg.leads)
                     except ProviderError as err:
                         if err.fatal:
                             raise
