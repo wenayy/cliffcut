@@ -1,0 +1,475 @@
+{
+  "id": "20261120-143413-bc3809",
+  "created": "2026-11-20T14:34:13",
+  "show": "fantasy",
+  "provider": "openai",
+  "model": "gpt-5.4-mini",
+  "episodes": [
+    1,
+    2
+  ],
+  "config": {
+    "candidates_per_episode": 3,
+    "finalists": 16,
+    "concurrency": null,
+    "episodes": null,
+    "stitch": true,
+    "judge": true,
+    "brief": "",
+    "genre": "Fantasy and paranormal",
+    "teasers": true,
+    "trailer_min": 60.0,
+    "trailer_max": 90.0,
+    "language": "English",
+    "leads": [
+      "TARA",
+      "KABIR"
+    ],
+    "taste_examples": 0
+  },
+  "stats": {
+    "calls": 4,
+    "cached": 6,
+    "retries": 0,
+    "prompt_tokens": 2105,
+    "completion_tokens": 535,
+    "model_seconds": 6.9,
+    "wall_seconds": 1.8,
+    "candidates": 4,
+    "passed_code_checks": 4,
+    "finalists": 4,
+    "repaired": 0
+  },
+  "errors": [],
+  "promos": [
+    {
+      "title": "Silver Blood Bond",
+      "hook": "A wounded wolf collapses at Tara’s feet, then turns into a man with silver blood.",
+      "cliffhanger": "What does it mean that Tara is now bound to him?",
+      "why": "It opens with a supernatural reveal and ends on a cursed-bond threat that demands the next scene.",
+      "mood": "",
+      "hook_label": "silver blood",
+      "hook_type": "identity_reversal",
+      "evidence": {
+        "opens_on": "e01.008",
+        "conflict_type": "reveal",
+        "ends_on": "e01.022",
+        "open_question": "What does it mean that Tara is now bound to him?",
+        "needs_backstory": false,
+        "stakes": "Tara could be trapped in a dangerous supernatural bond, and Kabir could lose control over the healer who touched his blood.",
+        "power_shift": true,
+        "intense_beats": [
+          "e01.008",
+          "e01.010",
+          "e01.014",
+          "e01.020",
+          "e01.022"
+        ]
+      },
+      "scores": {
+        "hook": 10.0,
+        "cliffhanger": 8.0,
+        "standalone": 10.0,
+        "emotion": 10.0,
+        "clarity": 8.0
+      },
+      "segments": [
+        {
+          "episode": 1,
+          "start": "00:06.93",
+          "end": "00:30.10",
+          "start_s": 6.93,
+          "end_s": 30.1,
+          "length_s": 23.17,
+          "first_event": "e01.008",
+          "last_event": "e01.022",
+          "hook_delay_s": 0.0,
+          "tail_s": 2.75
+        }
+      ],
+      "length": 23.17,
+      "checks": [
+        {
+          "name": "length",
+          "ok": true,
+          "detail": "23.2s (allowed 20–60s)"
+        },
+        {
+          "name": "hook_in_3s",
+          "ok": true,
+          "detail": "hook lands at 0.0s"
+        },
+        {
+          "name": "ends_on_reaction",
+          "ok": true,
+          "detail": "2.8s held after the last word"
+        },
+        {
+          "name": "clean_cuts",
+          "ok": true,
+          "detail": "no chopped line, no flash frame"
+        }
+      ],
+      "problems": [],
+      "code_ok": true,
+      "source_episode": 1,
+      "breakdown": [
+        {
+          "axis": "hook",
+          "points": 4,
+          "max": 4,
+          "why": "Opens on a reveal at 0.0 s: “A wounded wolf limps out of the dark and collapses at her feet.”"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "Intense from the first seconds: “A wounded wolf limps out of the dark and collapses at her feet.”"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "Lands without backstory"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "First beat lands at 0.0 s"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 4,
+          "max": 4,
+          "why": "Cuts on an open question: “What does it mean that Tara is now bound to him?”"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 0,
+          "max": 2,
+          "why": "Last line: “The alpha of the pack your village burned. And now you're bo”"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 2,
+          "max": 2,
+          "why": "Holds 2.8 s on the reaction after the last line"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 2,
+          "max": 2,
+          "why": "Judge: the answer comes after the cut"
+        },
+        {
+          "axis": "standalone",
+          "points": 4,
+          "max": 4,
+          "why": "Stakes: Tara could be trapped in a dangerous supernatural bond, and Kabir could lose control over "
+        },
+        {
+          "axis": "standalone",
+          "points": 3,
+          "max": 3,
+          "why": "2 people speak: KABIR, TARA"
+        },
+        {
+          "axis": "standalone",
+          "points": 3,
+          "max": 3,
+          "why": "A lead is in it: TARA"
+        },
+        {
+          "axis": "emotion",
+          "points": 6,
+          "max": 6,
+          "why": "7 intense beats in the script, e.g. “A wounded wolf limps out of the dark and collapses at her feet.”"
+        },
+        {
+          "axis": "emotion",
+          "points": 4,
+          "max": 4,
+          "why": "Power shifts inside the promo"
+        },
+        {
+          "axis": "clarity",
+          "points": 2,
+          "max": 4,
+          "why": "23 s long (sweet spot 30–55 s)"
+        },
+        {
+          "axis": "clarity",
+          "points": 3,
+          "max": 3,
+          "why": "One continuous piece"
+        },
+        {
+          "axis": "clarity",
+          "points": 3,
+          "max": 3,
+          "why": "Judge: a stranger understood it"
+        }
+      ],
+      "ai_checks": {
+        "cold_viewer": {
+          "who_to_root_for": "Tara, because she seems like the shocked human caught in something supernatural, though Kabir also has a tragic-villain vibe",
+          "stakes": "Tara has accidentally become bound to Kabir, who is the alpha of a pack her village burned, so this could turn into danger, revenge, or some kind of forced connection",
+          "open_question": "What does being 'bound' to Kabir mean, and will Tara be punished for touching his blood?",
+          "understandable": true,
+          "swipe_second": null
+        },
+        "cliffhanger_open": true,
+        "cliffhanger_reason": "The promo ends with Tara seeing the silver mark spread across her wrist, and the next scene immediately escalates into a new danger: her father is outside, the door handle turns, and Kabir warns that if her father sees the mark he will kill them. The confrontation is not resolved before the cut, so the viewer is left needing the next scene.",
+        "spoiler": false,
+        "spoiler_reason": "The promo only reveals events from the first episode and setup for the next scene: Kabir’s transformation, the bond, and Tara’s moon mark. It does not reveal a later-series twist, ending, or hidden identity beyond what the synopsis already establishes."
+      },
+      "score": 9.3,
+      "rank": 1
+    },
+    {
+      "title": "Moon Mark Secret",
+      "hook": "Tara scrubs her wrist raw as Kabir reveals the mark won’t wash off and means the moon chose her.",
+      "cliffhanger": "What happens when her father opens the door and sees Kabir—and the mark?",
+      "why": "It starts with a supernatural reveal and ends on a literal door-turning threat, perfect for a fast fantasy hook.",
+      "mood": "",
+      "hook_label": "moon mark",
+      "hook_type": "identity_reversal",
+      "evidence": {
+        "opens_on": "e02.002",
+        "conflict_type": "reveal",
+        "ends_on": "e02.016",
+        "open_question": "What happens when her father opens the door and sees Kabir—and the mark?",
+        "needs_backstory": false,
+        "stakes": "Tara could be killed by her hunter father, and Kabir could be exposed and killed too.",
+        "power_shift": true,
+        "intense_beats": [
+          "e02.002",
+          "e02.004",
+          "e02.008",
+          "e02.012",
+          "e02.016"
+        ]
+      },
+      "scores": {
+        "hook": 8.0,
+        "cliffhanger": 8.0,
+        "standalone": 10.0,
+        "emotion": 10.0,
+        "clarity": 8.0
+      },
+      "segments": [
+        {
+          "episode": 2,
+          "start": "00:00.00",
+          "end": "00:23.00",
+          "start_s": 0.0,
+          "end_s": 23.0,
+          "length_s": 23.0,
+          "first_event": "e02.002",
+          "last_event": "e02.016",
+          "hook_delay_s": 0.0,
+          "tail_s": 1.85
+        }
+      ],
+      "length": 23.0,
+      "checks": [
+        {
+          "name": "length",
+          "ok": true,
+          "detail": "23.0s (allowed 20–60s)"
+        },
+        {
+          "name": "hook_in_3s",
+          "ok": true,
+          "detail": "hook lands at 0.0s"
+        },
+        {
+          "name": "ends_on_reaction",
+          "ok": true,
+          "detail": "1.9s held after the last word"
+        },
+        {
+          "name": "clean_cuts",
+          "ok": true,
+          "detail": "no chopped line, no flash frame"
+        }
+      ],
+      "problems": [],
+      "code_ok": true,
+      "source_episode": 2,
+      "breakdown": [
+        {
+          "axis": "hook",
+          "points": 4,
+          "max": 4,
+          "why": "Opens on a reveal at 0.0 s: “Tara scrubs her wrist raw. The mark will not fade.”"
+        },
+        {
+          "axis": "hook",
+          "points": 0,
+          "max": 2,
+          "why": "No intense emotion or action in the first 3 s"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "Lands without backstory"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "First beat lands at 0.0 s"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 4,
+          "max": 4,
+          "why": "Cuts on an open question: “What happens when her father opens the door and sees Kabir—and the mark?”"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 0,
+          "max": 2,
+          "why": "Last line: “If he sees that mark, he'll kill you.”"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 2,
+          "max": 2,
+          "why": "Holds 1.9 s on the reaction after the last line"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 2,
+          "max": 2,
+          "why": "Judge: the answer comes after the cut"
+        },
+        {
+          "axis": "standalone",
+          "points": 4,
+          "max": 4,
+          "why": "Stakes: Tara could be killed by her hunter father, and Kabir could be exposed and killed too."
+        },
+        {
+          "axis": "standalone",
+          "points": 3,
+          "max": 3,
+          "why": "2 people speak: KABIR, TARA"
+        },
+        {
+          "axis": "standalone",
+          "points": 3,
+          "max": 3,
+          "why": "A lead is in it: TARA"
+        },
+        {
+          "axis": "emotion",
+          "points": 6,
+          "max": 6,
+          "why": "6 intense beats in the script, e.g. “Tara scrubs her wrist raw. The mark will not fade.”"
+        },
+        {
+          "axis": "emotion",
+          "points": 4,
+          "max": 4,
+          "why": "Power shifts inside the promo"
+        },
+        {
+          "axis": "clarity",
+          "points": 2,
+          "max": 4,
+          "why": "23 s long (sweet spot 30–55 s)"
+        },
+        {
+          "axis": "clarity",
+          "points": 3,
+          "max": 3,
+          "why": "One continuous piece"
+        },
+        {
+          "axis": "clarity",
+          "points": 3,
+          "max": 3,
+          "why": "Judge: a stranger understood it"
+        }
+      ],
+      "ai_checks": {
+        "cold_viewer": {
+          "who_to_root_for": "Tara and Kabir, since they seem to be trying to survive and protect each other",
+          "stakes": "A dangerous secret mark has chosen Tara, and if her father/the hunters find out, he may kill her and Kabir",
+          "open_question": "What is the moon mark, and will Tara’s father discover Kabir before the door opens?",
+          "understandable": true,
+          "swipe_second": null
+        },
+        "cliffhanger_open": true,
+        "cliffhanger_reason": "The promo ends as the door handle turns, with Tara and Kabir facing immediate danger from her hunter father. The confrontation has not played out, so the viewer is left needing the next scene to see whether he enters and what happens when he sees Kabir and the moon mark.",
+        "spoiler": false,
+        "spoiler_reason": "The promo only covers the setup from the early episodes: Tara’s moon mark, Kabir’s identity as the wounded wolf, and the danger from her father. It does not reveal a later-series twist, ending, or hidden identity beyond what the synopsis already establishes."
+      },
+      "score": 8.08,
+      "rank": 2
+    }
+  ],
+  "rejected": [],
+  "teasers": [
+    {
+      "line": "It means the moon chose you... If he sees that mark, he'll kill you.",
+      "why": "It teases the forbidden bond and the danger without showing the door opening or the episode’s payoff.",
+      "segments": [
+        {
+          "episode": 2,
+          "start": "00:02.00",
+          "end": "00:21.50",
+          "start_s": 2.0,
+          "end_s": 21.5,
+          "length_s": 19.5,
+          "first_event": "e02.004",
+          "last_event": "e02.014",
+          "hook_delay_s": 0.0,
+          "tail_s": 0.35
+        }
+      ],
+      "length": 19.5,
+      "checks": [
+        {
+          "name": "length",
+          "ok": true,
+          "detail": "19.5s (allowed 8–20s)"
+        },
+        {
+          "name": "hook_in_3s",
+          "ok": true,
+          "detail": "hook lands at 0.0s"
+        },
+        {
+          "name": "ends_on_reaction",
+          "ok": true,
+          "detail": "0.4s held after the last word"
+        },
+        {
+          "name": "clean_cuts",
+          "ok": true,
+          "detail": "no chopped line, no flash frame"
+        },
+        {
+          "name": "no_ending",
+          "ok": false,
+          "detail": "ends at 00:21.50; the episode's last quarter starts at 00:19.55"
+        }
+      ],
+      "problems": [],
+      "code_ok": false,
+      "from_episode": 2,
+      "for_episode": 1
+    }
+  ],
+  "trailers": [],
+  "story": null,
+  "leads": [
+    "TARA",
+    "KABIR"
+  ]
+}

@@ -1,0 +1,238 @@
+{
+  "id": "20261120-143202-8b1628",
+  "created": "2026-11-20T14:32:02",
+  "show": "thriller",
+  "provider": "openai",
+  "model": "gpt-5.4-mini",
+  "episodes": [
+    1
+  ],
+  "config": {
+    "candidates_per_episode": 3,
+    "finalists": 16,
+    "concurrency": null,
+    "episodes": null,
+    "stitch": true,
+    "judge": true,
+    "brief": "",
+    "genre": "Thriller and suspense",
+    "teasers": true,
+    "trailer_min": 60.0,
+    "trailer_max": 90.0,
+    "language": "English",
+    "leads": [
+      "NISHA",
+      "ARJUN"
+    ],
+    "taste_examples": 0
+  },
+  "stats": {
+    "calls": 7,
+    "cached": 0,
+    "retries": 0,
+    "prompt_tokens": 3675,
+    "completion_tokens": 1438,
+    "model_seconds": 18.4,
+    "wall_seconds": 10.4,
+    "candidates": 3,
+    "passed_code_checks": 3,
+    "finalists": 3,
+    "repaired": 0
+  },
+  "errors": [],
+  "promos": [
+    {
+      "title": "Editor Sold You Out",
+      "hook": "Footsteps close in behind Nisha as she realizes she’s being followed.",
+      "cliffhanger": "Who is the car below, and is Arjun already compromised?",
+      "why": "It opens with immediate danger, then lands on the betrayal reveal and ends on a visual threat before the answer.",
+      "mood": "",
+      "hook_label": "watched in garage",
+      "hook_type": "other",
+      "evidence": {
+        "opens_on": "e01.003",
+        "conflict_type": "threat",
+        "ends_on": "e01.019",
+        "open_question": "Who is the car below, and is Arjun already compromised?",
+        "needs_backstory": false,
+        "stakes": "Nisha could be exposed or killed, and the whistleblower’s evidence could be lost before she can use it.",
+        "power_shift": true,
+        "intense_beats": [
+          "e01.003",
+          "e01.009",
+          "e01.013",
+          "e01.018",
+          "e01.019"
+        ]
+      },
+      "scores": {
+        "hook": 10.0,
+        "cliffhanger": 8.0,
+        "standalone": 10.0,
+        "emotion": 10.0,
+        "clarity": 10.0
+      },
+      "segments": [
+        {
+          "episode": 1,
+          "start": "00:02.75",
+          "end": "00:40.00",
+          "start_s": 2.75,
+          "end_s": 40.0,
+          "length_s": 37.25,
+          "first_event": "e01.003",
+          "last_event": "e01.019",
+          "hook_delay_s": 0.25,
+          "tail_s": 2.5
+        }
+      ],
+      "length": 37.25,
+      "checks": [
+        {
+          "name": "length",
+          "ok": true,
+          "detail": "37.2s (allowed 20–60s)"
+        },
+        {
+          "name": "hook_in_3s",
+          "ok": true,
+          "detail": "hook lands at 0.2s"
+        },
+        {
+          "name": "ends_on_reaction",
+          "ok": true,
+          "detail": "2.5s held after the last word"
+        },
+        {
+          "name": "clean_cuts",
+          "ok": true,
+          "detail": "no chopped line, no flash frame"
+        }
+      ],
+      "problems": [],
+      "code_ok": true,
+      "source_episode": 1,
+      "breakdown": [
+        {
+          "axis": "hook",
+          "points": 4,
+          "max": 4,
+          "why": "Opens on a threat at 0.2 s: “Footsteps echo behind her, matching her pace.”"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "Intense from the first seconds: “Footsteps echo behind her, matching her pace.”"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "Lands without backstory"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "First beat lands at 0.2 s"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 4,
+          "max": 4,
+          "why": "Cuts on an open question: “Who is the car below, and is Arjun already compromised?”"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 0,
+          "max": 2,
+          "why": "Last line: “Only one person. And I just saw his car.”"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 2,
+          "max": 2,
+          "why": "Holds 2.5 s on the reaction after the last line"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 2,
+          "max": 2,
+          "why": "Judge: the answer comes after the cut"
+        },
+        {
+          "axis": "standalone",
+          "points": 4,
+          "max": 4,
+          "why": "Stakes: Nisha could be exposed or killed, and the whistleblower’s evidence could be lost before sh"
+        },
+        {
+          "axis": "standalone",
+          "points": 3,
+          "max": 3,
+          "why": "2 people speak: ARJUN, NISHA"
+        },
+        {
+          "axis": "standalone",
+          "points": 3,
+          "max": 3,
+          "why": "A lead is in it: NISHA"
+        },
+        {
+          "axis": "emotion",
+          "points": 6,
+          "max": 6,
+          "why": "7 intense beats in the script, e.g. “Footsteps echo behind her, matching her pace.”"
+        },
+        {
+          "axis": "emotion",
+          "points": 4,
+          "max": 4,
+          "why": "Power shifts inside the promo"
+        },
+        {
+          "axis": "clarity",
+          "points": 4,
+          "max": 4,
+          "why": "37 s long (sweet spot 30–55 s)"
+        },
+        {
+          "axis": "clarity",
+          "points": 3,
+          "max": 3,
+          "why": "One continuous piece"
+        },
+        {
+          "axis": "clarity",
+          "points": 3,
+          "max": 3,
+          "why": "Judge: a stranger understood it"
+        }
+      ],
+      "ai_checks": {
+        "cold_viewer": {
+          "who_to_root_for": "Nisha, because she seems to be the one being warned and betrayed, and Arjun is helping her.",
+          "stakes": "Someone has leaked files, Nisha’s editor may have sold her out, the café is being watched, and there may be danger if she goes home tonight.",
+          "open_question": "Who is the person in the car, and can Nisha trust Arjun and get the files out safely?",
+          "understandable": true,
+          "swipe_second": null
+        },
+        "cliffhanger_open": true,
+        "cliffhanger_reason": "The promo ends with Arjun saying he just saw the other person's car, but it does not reveal who that person is or what happens next. The immediate question is left unresolved at the cut.",
+        "spoiler": false,
+        "spoiler_reason": "The promo only covers the setup and the betrayal already described in the episode synopsis. It does not reveal a later-series twist, ending, or hidden identity beyond what is normal for the first episode."
+      },
+      "score": 9.5,
+      "rank": 1
+    }
+  ],
+  "rejected": [],
+  "teasers": [],
+  "trailers": [],
+  "story": null,
+  "leads": [
+    "NISHA",
+    "ARJUN"
+  ]
+}

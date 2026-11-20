@@ -1,0 +1,994 @@
+{
+  "id": "20261120-133332-382e1b",
+  "created": "2026-11-20T13:33:32",
+  "show": "subtitles-horror",
+  "provider": "openai",
+  "model": "gpt-5.4-mini",
+  "episodes": [
+    1,
+    2
+  ],
+  "config": {
+    "candidates_per_episode": 3,
+    "finalists": 16,
+    "concurrency": null,
+    "episodes": null,
+    "stitch": true,
+    "judge": true,
+    "brief": "",
+    "genre": "Horror and supernatural",
+    "teasers": true,
+    "trailer_min": 60.0,
+    "trailer_max": 90.0,
+    "language": "English",
+    "leads": [
+      "ANYA",
+      "DEV",
+      "GIRL"
+    ],
+    "taste_examples": 0
+  },
+  "stats": {
+    "calls": 7,
+    "cached": 2,
+    "retries": 0,
+    "prompt_tokens": 6250,
+    "completion_tokens": 2820,
+    "model_seconds": 25.2,
+    "wall_seconds": 15.8,
+    "candidates": 6,
+    "passed_code_checks": 3,
+    "finalists": 3,
+    "repaired": 3
+  },
+  "errors": [],
+  "promos": [
+    {
+      "title": "The Girl Behind Him",
+      "hook": "A child’s music box starts playing from room six, and a girl answers from inside.",
+      "cliffhanger": "Is the girl real, or is Dev already standing next to something worse?",
+      "why": "It skips straight to the creepiest reveal and lands on the chilling line that flips the scene.",
+      "mood": "",
+      "hook_label": "music box ghost",
+      "hook_type": "other",
+      "evidence": {
+        "opens_on": "e01.015",
+        "conflict_type": "reveal",
+        "ends_on": "e01.027",
+        "open_question": "Is the girl real, or is Dev already standing next to something worse?",
+        "needs_backstory": false,
+        "stakes": "Anya could be face-to-face with the missing child’s spirit while Dev is in immediate danger.",
+        "power_shift": true,
+        "intense_beats": [
+          "e01.015",
+          "e01.019",
+          "e01.020",
+          "e01.024",
+          "e01.026",
+          "e01.027"
+        ]
+      },
+      "scores": {
+        "hook": 10.0,
+        "cliffhanger": 8.0,
+        "standalone": 9.0,
+        "emotion": 10.0,
+        "clarity": 10.0
+      },
+      "segments": [
+        {
+          "episode": 1,
+          "start": "00:32.25",
+          "end": "01:03.00",
+          "start_s": 32.25,
+          "end_s": 63.0,
+          "length_s": 30.75,
+          "first_event": "e01.015",
+          "last_event": "e01.027",
+          "hook_delay_s": 0.25,
+          "tail_s": 3.0
+        }
+      ],
+      "length": 30.75,
+      "checks": [
+        {
+          "name": "length",
+          "ok": true,
+          "detail": "30.8s (allowed 20–60s)"
+        },
+        {
+          "name": "hook_in_3s",
+          "ok": true,
+          "detail": "hook lands at 0.2s"
+        },
+        {
+          "name": "ends_on_reaction",
+          "ok": true,
+          "detail": "3.0s held after the last word"
+        },
+        {
+          "name": "clean_cuts",
+          "ok": true,
+          "detail": "no chopped line, no flash frame"
+        }
+      ],
+      "problems": [],
+      "code_ok": true,
+      "source_episode": 1,
+      "breakdown": [
+        {
+          "axis": "hook",
+          "points": 4,
+          "max": 4,
+          "why": "Opens on a reveal at 0.2 s: “A child's music box starts playing”"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "Intense from the first seconds: “A child's music box starts playing”"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "Lands without backstory"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "First beat lands at 0.2 s"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 4,
+          "max": 4,
+          "why": "Cuts on an open question: “Is the girl real, or is Dev already standing next to something worse?”"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 0,
+          "max": 2,
+          "why": "Last line: “Dev... she's standing right behind you.”"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 2,
+          "max": 2,
+          "why": "Holds 3.0 s on the reaction after the last line"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 2,
+          "max": 2,
+          "why": "Judge: the answer comes after the cut"
+        },
+        {
+          "axis": "standalone",
+          "points": 4,
+          "max": 4,
+          "why": "Stakes: Anya could be face-to-face with the missing child’s spirit while Dev is in immediate dange"
+        },
+        {
+          "axis": "standalone",
+          "points": 2,
+          "max": 3,
+          "why": "3 people speak: ANYA, DEV, GIRL"
+        },
+        {
+          "axis": "standalone",
+          "points": 3,
+          "max": 3,
+          "why": "A lead is in it: GIRL"
+        },
+        {
+          "axis": "emotion",
+          "points": 6,
+          "max": 6,
+          "why": "6 intense beats in the script, e.g. “A child's music box starts playing”"
+        },
+        {
+          "axis": "emotion",
+          "points": 4,
+          "max": 4,
+          "why": "Power shifts inside the promo"
+        },
+        {
+          "axis": "clarity",
+          "points": 4,
+          "max": 4,
+          "why": "31 s long (sweet spot 30–55 s)"
+        },
+        {
+          "axis": "clarity",
+          "points": 3,
+          "max": 3,
+          "why": "One continuous piece"
+        },
+        {
+          "axis": "clarity",
+          "points": 3,
+          "max": 3,
+          "why": "Judge: a stranger understood it"
+        }
+      ],
+      "ai_checks": {
+        "cold_viewer": {
+          "who_to_root_for": "Anya and Dev, because they seem to be the ones trying to figure out what’s going on and stay safe",
+          "stakes": "They’ve found a mysterious room and a girl who may be dangerous or supernatural, and one of them is now standing right behind Dev",
+          "open_question": "Who is the girl in the room, and what happens to Anya and Dev now that she’s behind him?",
+          "understandable": true,
+          "swipe_second": null
+        },
+        "cliffhanger_open": true,
+        "cliffhanger_reason": "The promo ends with Anya saying the girl is standing right behind Dev, but the very next scene shows the aftermath and confirms the confrontation is not resolved yet. The question of who the girl is and what happens when she appears is still answered only after the cut.",
+        "spoiler": false,
+        "spoiler_reason": "The promo only covers events from the first episode and the immediate setup of the second: the forbidden room, the girl in the room, and the reveal that she knows Anya. It does not reveal a major later-series twist like the full identity of the girl, a death, or the ending."
+      },
+      "score": 9.3,
+      "rank": 1
+    },
+    {
+      "title": "Photo in the Dark",
+      "hook": "A glass shatters in the dark, then Anya finds her own photo on the wall.",
+      "cliffhanger": "How can there be a photo of Anya from 1987?",
+      "why": "It opens with a creepy sound, then escalates into an impossible identity reveal that lands on the caretaker's chilling confirmation.",
+      "mood": "",
+      "hook_label": "photo reveal",
+      "hook_type": "identity_reversal",
+      "evidence": {
+        "opens_on": "e02.003",
+        "conflict_type": "reveal",
+        "ends_on": "e02.013",
+        "open_question": "How can there be a photo of Anya from 1987?",
+        "needs_backstory": false,
+        "stakes": "Anya may be trapped in a house that knows her identity, while Dev has to decide whether to trust the caretaker or get them both out.",
+        "power_shift": true,
+        "intense_beats": [
+          "e02.003",
+          "e02.009",
+          "e02.011",
+          "e02.013"
+        ]
+      },
+      "scores": {
+        "hook": 10.0,
+        "cliffhanger": 8.0,
+        "standalone": 9.0,
+        "emotion": 10.0,
+        "clarity": 8.0
+      },
+      "segments": [
+        {
+          "episode": 2,
+          "start": "00:04.25",
+          "end": "00:30.50",
+          "start_s": 4.25,
+          "end_s": 30.5,
+          "length_s": 26.25,
+          "first_event": "e02.003",
+          "last_event": "e02.013",
+          "hook_delay_s": 0.25,
+          "tail_s": 0.5
+        }
+      ],
+      "length": 26.25,
+      "checks": [
+        {
+          "name": "length",
+          "ok": true,
+          "detail": "26.2s (allowed 20–60s)"
+        },
+        {
+          "name": "hook_in_3s",
+          "ok": true,
+          "detail": "hook lands at 0.2s"
+        },
+        {
+          "name": "ends_on_reaction",
+          "ok": true,
+          "detail": "0.5s held after the last word"
+        },
+        {
+          "name": "clean_cuts",
+          "ok": true,
+          "detail": "no chopped line, no flash frame"
+        }
+      ],
+      "problems": [],
+      "code_ok": true,
+      "source_episode": 2,
+      "repaired": true,
+      "breakdown": [
+        {
+          "axis": "hook",
+          "points": 4,
+          "max": 4,
+          "why": "Opens on a reveal at 0.2 s: “Glass shatters somewhere in the dark”"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "Intense from the first seconds: “Glass shatters somewhere in the dark”"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "Lands without backstory"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "First beat lands at 0.2 s"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 4,
+          "max": 4,
+          "why": "Cuts on an open question: “How can there be a photo of Anya from 1987?”"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 0,
+          "max": 2,
+          "why": "Last line: “It's her. She's the daughter. She came back.”"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 2,
+          "max": 2,
+          "why": "Holds 0.5 s on the reaction after the last line"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 2,
+          "max": 2,
+          "why": "Judge: the answer comes after the cut"
+        },
+        {
+          "axis": "standalone",
+          "points": 4,
+          "max": 4,
+          "why": "Stakes: Anya may be trapped in a house that knows her identity, while Dev has to decide whether to"
+        },
+        {
+          "axis": "standalone",
+          "points": 2,
+          "max": 3,
+          "why": "3 people speak: ANYA, CARETAKER, DEV"
+        },
+        {
+          "axis": "standalone",
+          "points": 3,
+          "max": 3,
+          "why": "A lead is in it: DEV"
+        },
+        {
+          "axis": "emotion",
+          "points": 6,
+          "max": 6,
+          "why": "4 intense beats in the script, e.g. “Glass shatters somewhere in the dark”"
+        },
+        {
+          "axis": "emotion",
+          "points": 4,
+          "max": 4,
+          "why": "Power shifts inside the promo"
+        },
+        {
+          "axis": "clarity",
+          "points": 2,
+          "max": 4,
+          "why": "26 s long (sweet spot 30–55 s)"
+        },
+        {
+          "axis": "clarity",
+          "points": 3,
+          "max": 3,
+          "why": "One continuous piece"
+        },
+        {
+          "axis": "clarity",
+          "points": 3,
+          "max": 3,
+          "why": "Judge: a stranger understood it"
+        }
+      ],
+      "ai_checks": {
+        "cold_viewer": {
+          "who_to_root_for": "Anya, because she seems confused and is trying to figure out why there’s a photo of her in a place she’s never been before.",
+          "stakes": "Whether Anya is really connected to this place and the 1987 photo, or if something impossible/creepy is going on.",
+          "open_question": "Why is there a photo of Anya from 1987, and what does the caretaker mean by saying she’s the daughter who came back?",
+          "understandable": true,
+          "swipe_second": null
+        },
+        "cliffhanger_open": true,
+        "cliffhanger_reason": "The promo ends with the caretaker saying Anya is 'the daughter' and came back, but it does not answer Anya's identity. Right after the cut, the scene continues by denying her parents, revealing she was taken from this room, and then the house traps them, so the promo leaves the key question open.",
+        "spoiler": false,
+        "spoiler_reason": "The promo only teases the immediate episode mystery about Anya's identity and the haunted house. It does not reveal a later-series twist beyond what the synopsis already sets up, so it is not a major spoiler."
+      },
+      "score": 9.08,
+      "rank": 2
+    }
+  ],
+  "rejected": [
+    {
+      "title": "Room Six Warning",
+      "hook": "A door slams upstairs, then Anya hears footsteps that shouldn’t exist.",
+      "cliffhanger": "Who is the girl standing behind Dev when the lights go out?",
+      "why": "It opens with immediate supernatural danger and ends on a dark reveal that begs for the next beat.",
+      "mood": "",
+      "hook_label": "room six",
+      "hook_type": "other",
+      "evidence": {
+        "opens_on": "e01.001",
+        "conflict_type": "threat",
+        "ends_on": "e01.027",
+        "open_question": "Who is the girl standing behind Dev when the lights go out?",
+        "needs_backstory": false,
+        "stakes": "Anya and Dev may be trapped with the missing girl’s ghost in the lodge.",
+        "power_shift": true,
+        "intense_beats": [
+          "e01.001",
+          "e01.008",
+          "e01.015",
+          "e01.020",
+          "e01.024",
+          "e01.026",
+          "e01.027"
+        ]
+      },
+      "scores": {
+        "hook": 10.0,
+        "cliffhanger": 7.0,
+        "standalone": 9.0,
+        "emotion": 10.0,
+        "clarity": 6.5
+      },
+      "segments": [
+        {
+          "episode": 1,
+          "start": "00:00.00",
+          "end": "01:03.00",
+          "start_s": 0.0,
+          "end_s": 63.0,
+          "length_s": 63.0,
+          "first_event": "e01.001",
+          "last_event": "e01.027",
+          "hook_delay_s": 0.5,
+          "tail_s": 3.0
+        }
+      ],
+      "length": 63.0,
+      "checks": [
+        {
+          "name": "length",
+          "ok": false,
+          "detail": "63.0s (allowed 20–60s)"
+        },
+        {
+          "name": "hook_in_3s",
+          "ok": true,
+          "detail": "hook lands at 0.5s"
+        },
+        {
+          "name": "ends_on_reaction",
+          "ok": true,
+          "detail": "3.0s held after the last word"
+        },
+        {
+          "name": "clean_cuts",
+          "ok": true,
+          "detail": "no chopped line, no flash frame"
+        }
+      ],
+      "problems": [],
+      "code_ok": false,
+      "source_episode": 1,
+      "breakdown": [
+        {
+          "axis": "hook",
+          "points": 4,
+          "max": 4,
+          "why": "Opens on a threat at 0.5 s: “A door slams upstairs”"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "Intense from the first seconds: “A door slams upstairs”"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "Lands without backstory"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "First beat lands at 0.5 s"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 4,
+          "max": 4,
+          "why": "Cuts on an open question: “Who is the girl standing behind Dev when the lights go out?”"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 0,
+          "max": 2,
+          "why": "Last line: “Dev... she's standing right behind you.”"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 2,
+          "max": 2,
+          "why": "Holds 3.0 s on the reaction after the last line"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 1,
+          "max": 2,
+          "why": "Not checked by the judge yet"
+        },
+        {
+          "axis": "standalone",
+          "points": 4,
+          "max": 4,
+          "why": "Stakes: Anya and Dev may be trapped with the missing girl’s ghost in the lodge."
+        },
+        {
+          "axis": "standalone",
+          "points": 2,
+          "max": 3,
+          "why": "3 people speak: ANYA, DEV, GIRL"
+        },
+        {
+          "axis": "standalone",
+          "points": 3,
+          "max": 3,
+          "why": "A lead is in it: GIRL"
+        },
+        {
+          "axis": "emotion",
+          "points": 6,
+          "max": 6,
+          "why": "7 intense beats in the script, e.g. “A door slams upstairs”"
+        },
+        {
+          "axis": "emotion",
+          "points": 4,
+          "max": 4,
+          "why": "Power shifts inside the promo"
+        },
+        {
+          "axis": "clarity",
+          "points": 2,
+          "max": 4,
+          "why": "63 s long (sweet spot 30–55 s)"
+        },
+        {
+          "axis": "clarity",
+          "points": 3,
+          "max": 3,
+          "why": "One continuous piece"
+        },
+        {
+          "axis": "clarity",
+          "points": 1.5,
+          "max": 3,
+          "why": "Not checked by the judge yet"
+        }
+      ]
+    },
+    {
+      "title": "Taken From This Room",
+      "hook": "Anya denies being anyone's daughter, and the caretaker says she was taken from this room.",
+      "cliffhanger": "If the door is gone and the girl calls her sister, what is Anya really trapped inside?",
+      "why": "It turns the story into a personal horror trap, ending on a direct supernatural claim that reframes Anya's whole identity.",
+      "mood": "",
+      "hook_label": "lost daughter",
+      "hook_type": "identity_reversal",
+      "evidence": {
+        "opens_on": "e02.015",
+        "conflict_type": "reveal",
+        "ends_on": "e02.024",
+        "open_question": "If the door is gone and the girl calls her sister, what is Anya really trapped inside?",
+        "needs_backstory": false,
+        "stakes": "Anya could be claimed by a family she doesn't recognize, while Dev loses the chance to get them out before the house seals them in.",
+        "power_shift": true,
+        "intense_beats": [
+          "e02.015",
+          "e02.017",
+          "e02.018",
+          "e02.022",
+          "e02.024"
+        ]
+      },
+      "scores": {
+        "hook": 8.0,
+        "cliffhanger": 5.0,
+        "standalone": 8.0,
+        "emotion": 10.0,
+        "clarity": 6.5
+      },
+      "segments": [
+        {
+          "episode": 2,
+          "start": "00:30.50",
+          "end": "00:56.00",
+          "start_s": 30.5,
+          "end_s": 56.0,
+          "length_s": 25.5,
+          "first_event": "e02.015",
+          "last_event": "e02.024",
+          "hook_delay_s": 0.0,
+          "tail_s": 0.0
+        }
+      ],
+      "length": 25.5,
+      "checks": [
+        {
+          "name": "length",
+          "ok": true,
+          "detail": "25.5s (allowed 20–60s)"
+        },
+        {
+          "name": "hook_in_3s",
+          "ok": true,
+          "detail": "hook lands at 0.0s"
+        },
+        {
+          "name": "ends_on_reaction",
+          "ok": false,
+          "detail": "0.0s held after the last word"
+        },
+        {
+          "name": "clean_cuts",
+          "ok": true,
+          "detail": "no chopped line, no flash frame"
+        }
+      ],
+      "problems": [],
+      "code_ok": false,
+      "source_episode": 2,
+      "repaired": true,
+      "breakdown": [
+        {
+          "axis": "hook",
+          "points": 4,
+          "max": 4,
+          "why": "Opens on a reveal at 0.0 s: ANYA: “I'm not anyone's daughter. My parents are alive.”"
+        },
+        {
+          "axis": "hook",
+          "points": 0,
+          "max": 2,
+          "why": "No intense emotion or action in the first 3 s"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "Lands without backstory"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "First beat lands at 0.0 s"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 4,
+          "max": 4,
+          "why": "Cuts on an open question: “If the door is gone and the girl calls her sister, what is Anya really trapped inside?”"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 0,
+          "max": 2,
+          "why": "Last line: “You can't leave, sister. You never could.”"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 0,
+          "max": 2,
+          "why": "Holds 0.0 s on the reaction after the last line"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 1,
+          "max": 2,
+          "why": "Not checked by the judge yet"
+        },
+        {
+          "axis": "standalone",
+          "points": 4,
+          "max": 4,
+          "why": "Stakes: Anya could be claimed by a family she doesn't recognize, while Dev loses the chance to get"
+        },
+        {
+          "axis": "standalone",
+          "points": 1,
+          "max": 3,
+          "why": "4 people speak: ANYA, CARETAKER, DEV, GIRL"
+        },
+        {
+          "axis": "standalone",
+          "points": 3,
+          "max": 3,
+          "why": "A lead is in it: GIRL"
+        },
+        {
+          "axis": "emotion",
+          "points": 6,
+          "max": 6,
+          "why": "5 intense beats in the script, e.g. ANYA: “I'm not anyone's daughter. My parents are alive.”"
+        },
+        {
+          "axis": "emotion",
+          "points": 4,
+          "max": 4,
+          "why": "Power shifts inside the promo"
+        },
+        {
+          "axis": "clarity",
+          "points": 2,
+          "max": 4,
+          "why": "26 s long (sweet spot 30–55 s)"
+        },
+        {
+          "axis": "clarity",
+          "points": 3,
+          "max": 3,
+          "why": "One continuous piece"
+        },
+        {
+          "axis": "clarity",
+          "points": 1.5,
+          "max": 3,
+          "why": "Not checked by the judge yet"
+        }
+      ]
+    },
+    {
+      "title": "The House Won't Let Go",
+      "hook": "Dev calls for Anya in the dark, then the house answers with a shattered glass sound and a girl who knows her name.",
+      "cliffhanger": "Who is the girl calling Anya sister, and why can't they leave?",
+      "why": "This longer cut builds dread fast and ends on the most unsettling line, making the house itself feel alive and hostile.",
+      "mood": "",
+      "hook_label": "haunted house",
+      "hook_type": "other",
+      "evidence": {
+        "opens_on": "e02.002",
+        "conflict_type": "other",
+        "ends_on": "e02.024",
+        "open_question": "Who is the girl calling Anya sister, and why can't they leave?",
+        "needs_backstory": false,
+        "stakes": "Anya and Dev are trapped in a haunted house that seems to know Anya's past and may not let either of them escape.",
+        "power_shift": true,
+        "intense_beats": [
+          "e02.003",
+          "e02.009",
+          "e02.013",
+          "e02.018",
+          "e02.022",
+          "e02.024"
+        ]
+      },
+      "scores": {
+        "hook": 6.0,
+        "cliffhanger": 5.0,
+        "standalone": 8.0,
+        "emotion": 10.0,
+        "clarity": 6.5
+      },
+      "segments": [
+        {
+          "episode": 2,
+          "start": "00:00.50",
+          "end": "00:56.00",
+          "start_s": 0.5,
+          "end_s": 56.0,
+          "length_s": 55.5,
+          "first_event": "e02.002",
+          "last_event": "e02.024",
+          "hook_delay_s": 0.0,
+          "tail_s": 0.0
+        }
+      ],
+      "length": 55.5,
+      "checks": [
+        {
+          "name": "length",
+          "ok": true,
+          "detail": "55.5s (allowed 20–60s)"
+        },
+        {
+          "name": "hook_in_3s",
+          "ok": true,
+          "detail": "hook lands at 0.0s"
+        },
+        {
+          "name": "ends_on_reaction",
+          "ok": false,
+          "detail": "0.0s held after the last word"
+        },
+        {
+          "name": "clean_cuts",
+          "ok": true,
+          "detail": "no chopped line, no flash frame"
+        }
+      ],
+      "problems": [],
+      "code_ok": false,
+      "source_episode": 2,
+      "repaired": true,
+      "breakdown": [
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 4,
+          "why": "Opens on something charged (other) but not a clear conflict"
+        },
+        {
+          "axis": "hook",
+          "points": 0,
+          "max": 2,
+          "why": "No intense emotion or action in the first 3 s"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "Lands without backstory"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "First beat lands at 0.0 s"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 4,
+          "max": 4,
+          "why": "Cuts on an open question: “Who is the girl calling Anya sister, and why can't they leave?”"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 0,
+          "max": 2,
+          "why": "Last line: “You can't leave, sister. You never could.”"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 0,
+          "max": 2,
+          "why": "Holds 0.0 s on the reaction after the last line"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 1,
+          "max": 2,
+          "why": "Not checked by the judge yet"
+        },
+        {
+          "axis": "standalone",
+          "points": 4,
+          "max": 4,
+          "why": "Stakes: Anya and Dev are trapped in a haunted house that seems to know Anya's past and may not let"
+        },
+        {
+          "axis": "standalone",
+          "points": 1,
+          "max": 3,
+          "why": "4 people speak: ANYA, CARETAKER, DEV, GIRL"
+        },
+        {
+          "axis": "standalone",
+          "points": 3,
+          "max": 3,
+          "why": "A lead is in it: GIRL"
+        },
+        {
+          "axis": "emotion",
+          "points": 6,
+          "max": 6,
+          "why": "6 intense beats in the script, e.g. “Glass shatters somewhere in the dark”"
+        },
+        {
+          "axis": "emotion",
+          "points": 4,
+          "max": 4,
+          "why": "Power shifts inside the promo"
+        },
+        {
+          "axis": "clarity",
+          "points": 2,
+          "max": 4,
+          "why": "56 s long (sweet spot 30–55 s)"
+        },
+        {
+          "axis": "clarity",
+          "points": 3,
+          "max": 3,
+          "why": "One continuous piece"
+        },
+        {
+          "axis": "clarity",
+          "points": 1.5,
+          "max": 3,
+          "why": "Not checked by the judge yet"
+        }
+      ]
+    }
+  ],
+  "teasers": [
+    {
+      "line": "Then why is there a photo of me on this wall?",
+      "why": "It teases the identity mystery and the house’s threat without revealing the trapped ending or the sister reveal.",
+      "segments": [
+        {
+          "episode": 2,
+          "start": "00:17.00",
+          "end": "00:48.00",
+          "start_s": 17.0,
+          "end_s": 48.0,
+          "length_s": 31.0,
+          "first_event": "e02.009",
+          "last_event": "e02.020",
+          "hook_delay_s": 0.0,
+          "tail_s": 0.5
+        }
+      ],
+      "length": 31.0,
+      "checks": [
+        {
+          "name": "length",
+          "ok": false,
+          "detail": "31.0s (allowed 8–20s)"
+        },
+        {
+          "name": "hook_in_3s",
+          "ok": true,
+          "detail": "hook lands at 0.0s"
+        },
+        {
+          "name": "ends_on_reaction",
+          "ok": true,
+          "detail": "0.5s held after the last word"
+        },
+        {
+          "name": "clean_cuts",
+          "ok": true,
+          "detail": "no chopped line, no flash frame"
+        },
+        {
+          "name": "no_ending",
+          "ok": false,
+          "detail": "ends at 00:48.00; the episode's last quarter starts at 00:47.60"
+        }
+      ],
+      "problems": [],
+      "code_ok": false,
+      "from_episode": 2,
+      "for_episode": 1
+    }
+  ],
+  "trailers": [],
+  "story": null,
+  "leads": [
+    "ANYA",
+    "DEV",
+    "GIRL"
+  ]
+}

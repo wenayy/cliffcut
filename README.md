@@ -12,6 +12,9 @@ Finds the promos in a microdrama's scripts: the hook, the cliffhanger, and a cle
 
 ## Outputs
 
+Raw runs on the shows written for this repo: [`outputs/`](outputs/).
+
+
 - **Promos:** 20–60 s from one episode, with a hook in the first 3 s and a cut on an open question.
 - **Whole-show trailers:** moments from different episodes in story order, never showing the ending. Each must be one story: pieces linked by *but* / *so* (never "and then"), one lead through every piece (checked in code), and a stranger who sees only the trailer must be able to retell it.
 - **Next-episode teasers:** 8–20 s clips from episode N+1, played at the end of episode N.

@@ -1,0 +1,240 @@
+{
+  "id": "20261120-143411-d9c369",
+  "created": "2026-11-20T14:34:11",
+  "show": "mythology",
+  "provider": "openai",
+  "model": "gpt-5.4-mini",
+  "episodes": [
+    1
+  ],
+  "config": {
+    "candidates_per_episode": 3,
+    "finalists": 16,
+    "concurrency": null,
+    "episodes": null,
+    "stitch": true,
+    "judge": true,
+    "brief": "",
+    "genre": "Mythology",
+    "teasers": true,
+    "trailer_min": 60.0,
+    "trailer_max": 90.0,
+    "language": "Hindi",
+    "leads": [
+      "ऋषि भार्गव",
+      "राजा विक्रम",
+      "रानी सुमित्रा"
+    ],
+    "taste_examples": 0
+  },
+  "stats": {
+    "calls": 4,
+    "cached": 3,
+    "retries": 0,
+    "prompt_tokens": 1782,
+    "completion_tokens": 476,
+    "model_seconds": 8.1,
+    "wall_seconds": 4.1,
+    "candidates": 3,
+    "passed_code_checks": 3,
+    "finalists": 3,
+    "repaired": 0
+  },
+  "errors": [],
+  "promos": [
+    {
+      "title": "श्राप का पहला वार",
+      "hook": "ऋषि भार्गव क्रोध में राजदरबार में घुसते हैं और राजा को श्राप देते हैं कि अगली पूर्णिमा तक उसका सबसे प्रिय छिन जाएगा।",
+      "cliffhanger": "अब राजा विक्रम किस उपाय को अपनाएंगे?",
+      "why": "पहले ही क्षण में सत्ता बनाम श्राप का टकराव है, और अंत में समाधान अधूरा छोड़कर जिज्ञासा बढ़ती है।",
+      "mood": "",
+      "hook_label": "राज-श्राप",
+      "hook_type": "other",
+      "evidence": {
+        "opens_on": "e01.004",
+        "conflict_type": "threat",
+        "ends_on": "e01.020",
+        "open_question": "अब राजा विक्रम किस उपाय को अपनाएंगे?",
+        "needs_backstory": false,
+        "stakes": "राजा विक्रम अपने पुत्र को खो सकते हैं, और रानी सुमित्रा का घर उजड़ सकता है।",
+        "power_shift": true,
+        "intense_beats": [
+          "e01.006",
+          "e01.010",
+          "e01.012",
+          "e01.014",
+          "e01.020"
+        ]
+      },
+      "scores": {
+        "hook": 10.0,
+        "cliffhanger": 7.0,
+        "standalone": 9.0,
+        "emotion": 10.0,
+        "clarity": 10.0
+      },
+      "segments": [
+        {
+          "episode": 1,
+          "start": "00:02.60",
+          "end": "00:33.93",
+          "start_s": 2.6,
+          "end_s": 33.93,
+          "length_s": 31.33,
+          "first_event": "e01.004",
+          "last_event": "e01.020",
+          "hook_delay_s": 0.0,
+          "tail_s": 0.35
+        }
+      ],
+      "length": 31.33,
+      "checks": [
+        {
+          "name": "length",
+          "ok": true,
+          "detail": "31.3s (allowed 20–60s)"
+        },
+        {
+          "name": "hook_in_3s",
+          "ok": true,
+          "detail": "hook lands at 0.0s"
+        },
+        {
+          "name": "ends_on_reaction",
+          "ok": true,
+          "detail": "0.4s held after the last word"
+        },
+        {
+          "name": "clean_cuts",
+          "ok": true,
+          "detail": "no chopped line, no flash frame"
+        }
+      ],
+      "problems": [],
+      "code_ok": true,
+      "source_episode": 1,
+      "breakdown": [
+        {
+          "axis": "hook",
+          "points": 4,
+          "max": 4,
+          "why": "Opens on a threat at 0.0 s: “ऋषि भार्गव अंदर आते हैं। उनकी आँखों में आग है।”"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "Intense from the first seconds: क्रोध में"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "Lands without backstory"
+        },
+        {
+          "axis": "hook",
+          "points": 2,
+          "max": 2,
+          "why": "First beat lands at 0.0 s"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 4,
+          "max": 4,
+          "why": "Cuts on an open question: “अब राजा विक्रम किस उपाय को अपनाएंगे?”"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 0,
+          "max": 2,
+          "why": "Last line: “कौन सा उपाय? मैं कुछ भी करूँगा।”"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 1,
+          "max": 2,
+          "why": "Holds 0.3 s on the reaction after the last line"
+        },
+        {
+          "axis": "cliffhanger",
+          "points": 2,
+          "max": 2,
+          "why": "Judge: the answer comes after the cut"
+        },
+        {
+          "axis": "standalone",
+          "points": 4,
+          "max": 4,
+          "why": "Stakes: राजा विक्रम अपने पुत्र को खो सकते हैं, और रानी सुमित्रा का घर उजड़ सकता है।"
+        },
+        {
+          "axis": "standalone",
+          "points": 2,
+          "max": 3,
+          "why": "3 people speak: ऋषि भार्गव, राजा विक्रम, रानी सुमित्रा"
+        },
+        {
+          "axis": "standalone",
+          "points": 3,
+          "max": 3,
+          "why": "A lead is in it: ऋषि भार्गव"
+        },
+        {
+          "axis": "emotion",
+          "points": 6,
+          "max": 6,
+          "why": "6 intense beats in the script, e.g. क्रोध में"
+        },
+        {
+          "axis": "emotion",
+          "points": 4,
+          "max": 4,
+          "why": "Power shifts inside the promo"
+        },
+        {
+          "axis": "clarity",
+          "points": 4,
+          "max": 4,
+          "why": "31 s long (sweet spot 30–55 s)"
+        },
+        {
+          "axis": "clarity",
+          "points": 3,
+          "max": 3,
+          "why": "One continuous piece"
+        },
+        {
+          "axis": "clarity",
+          "points": 3,
+          "max": 3,
+          "why": "Judge: a stranger understood it"
+        }
+      ],
+      "ai_checks": {
+        "cold_viewer": {
+          "who_to_root_for": "राजा विक्रम और रानी सुमित्रा, क्योंकि उनका पुत्र गायब हो गया है और वे उसे बचाने की कोशिश कर रहे हैं",
+          "stakes": "ऋषि भार्गव ने श्राप दिया है कि अगली पूर्णिमा तक राजा का सबसे प्रिय उससे छिन जाएगा, और अब राजकुमार गायब है",
+          "open_question": "राजकुमार कहाँ गया, और श्राप तोड़ने का एकमात्र उपाय क्या है?",
+          "understandable": true,
+          "swipe_second": null
+        },
+        "cliffhanger_open": true,
+        "cliffhanger_reason": "The promo ends with the king urgently asking what the remedy is after the curse has begun, and the rishi says there is only one way. That question is left unanswered at the cut, so the viewer is pulled forward to learn the next step and the prince’s fate.",
+        "spoiler": false,
+        "spoiler_reason": "The promo only shows the opening curse, the prince going missing, and the immediate setup from episode 1. It does not reveal a later-series twist, ending, hidden identity, or death."
+      },
+      "score": 9.05,
+      "rank": 1
+    }
+  ],
+  "rejected": [],
+  "teasers": [],
+  "trailers": [],
+  "story": null,
+  "leads": [
+    "ऋषि भार्गव",
+    "राजा विक्रम",
+    "रानी सुमित्रा"
+  ]
+}
