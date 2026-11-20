@@ -28,7 +28,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from promo.cuts import PROMO_MAX, PROMO_MIN, Promo, Segment, build_segment, check_promo, clean_boundaries
-from promo.pipeline import make_trailers, RunConfig, main_characters, run_show, save
+from promo.pipeline import lead_check, make_trailers, RunConfig, main_characters, run_show, save
 from promo.providers import PRESETS, Provider, ProviderError
 from promo.run import load_env
 from promo.timeline import Episode, load_show
@@ -56,6 +56,26 @@ if UPLOADS.is_dir():
         if meta.exists():
             m = json.loads(meta.read_text())
             SHOWS[d.name] = {"path": d / "scripts", "title": m.get("title", d.name), "locked": False, "note": "Uploaded"}
+
+# test shows written for this repo, in other genres, languages and formats (each with the runs made on it)
+EXAMPLES = [
+    ("ex-lodge", "subtitles-horror", "The Lodge · horror, subtitle files", "unseen"),
+    ("ex-thriller", "genres/thriller", "The Pen Drive · thriller, Kuku's format", "genres/thriller"),
+    ("ex-crime", "genres/crime", "Case 01 · crime, VTT subtitles", "genres/crime"),
+    ("ex-fantasy", "genres/fantasy", "Moonbound · fantasy, screenplay", "genres/fantasy"),
+    ("ex-comedy", "genres/comedy", "Wrong Wedding · comedy, screenplay", "genres/comedy"),
+    ("ex-mythology", "genres/mythology", "Shraap · mythology, Hindi", "genres/mythology"),
+    ("ex-hinglish", "hinglish", "Naukrani Ki Haveli · Hinglish", "hinglish"),
+]
+for sid, folder, title, runs in EXAMPLES:
+    if (ROOT / "samples" / folder).is_dir():
+        SHOWS[sid] = {"path": ROOT / "samples" / folder, "title": title, "locked": False,
+                      "note": "Test show written for this repo", "runs": RUNS / runs}
+
+
+def run_dir(sid: str) -> Path:
+    return SHOWS.get(sid, {}).get("runs") or RUNS / sid
+
 
 _cache: dict[str, dict[int, Episode]] = {}
 _lock = threading.Lock()
@@ -121,6 +141,7 @@ class CheckIn(BaseModel):
     segments: list[SegmentIn]
     min: float = PROMO_MIN
     max: float = PROMO_MAX
+    leads: list[str] | None = None     # whole-show trailers: every story piece must show or name a lead
 
 
 @app.post("/api/shows/{sid}/check")
@@ -144,8 +165,10 @@ def check(sid: str, body: CheckIn, x_passcode: str | None = Header(None)):
                           first.start - start, end - max(spoken) if spoken else 0.0)
         segs.append(seg)
     checks = check_promo(Promo(segs), eps, lo=body.min, hi=body.max) if segs else []
-    return {"segments": [s.as_dict() for s in segs], "length": round(sum(s.length for s in segs), 2),
-            "checks": [{"name": c.name, "ok": c.ok, "detail": c.detail} for c in checks]}
+    out = [{"name": c.name, "ok": c.ok, "detail": c.detail} for c in checks]
+    if body.leads and len(segs) > 1:
+        out.append(lead_check(segs, eps, [l.upper() for l in body.leads]))
+    return {"segments": [s.as_dict() for s in segs], "length": round(sum(s.length for s in segs), 2), "checks": out}
 
 
 # ------------------------------------------------------------------ upload
@@ -318,7 +341,7 @@ def start_run(sid: str, body: RunIn, x_passcode: str | None = Header(None)):
                                      trailer_max=body.trailer_max, language=body.language,
                                      leads=[x.strip().upper() for x in body.leads if x.strip()] if body.leads else None), progress)
             run["show_id"] = sid
-            save(run, RUNS / sid)
+            save(run, run_dir(sid))
             job.update(status="done", run_id=run["id"], message=f"{len(run['promos'])} promos")
         except ProviderError as err:
             job.update(status="error", error=str(err))
@@ -339,7 +362,7 @@ class TrailerIn(BaseModel):
 def more_trailers(sid: str, rid: str, body: TrailerIn, x_passcode: str | None = Header(None)):
     """The editor asks for a trailer ("focus on the revenge, end on the duke reveal"); it is added to the run."""
     eps = episodes(sid, x_passcode)
-    path = RUNS / sid / f"{re.sub(r'[^a-zA-Z0-9_-]', '', rid)}.json"
+    path = run_dir(sid) / f"{re.sub(r'[^a-zA-Z0-9_-]', '', rid)}.json"
     if not path.is_file():
         raise HTTPException(404, "No such run")
     run = json.loads(path.read_text())
@@ -368,7 +391,7 @@ def get_job(jid: str):
 
 
 def _runs(sid: str) -> list[dict]:
-    d = RUNS / sid
+    d = run_dir(sid)
     out = []
     for p in sorted(d.glob("*.json"), reverse=True) if d.is_dir() else []:
         try:

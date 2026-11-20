@@ -133,11 +133,13 @@ A trailer joins {pieces} moments from DIFFERENT episodes, in story order, {lo:.0
 2. TURN: the new relationship, deal or vow that changes the lead's life.
 3. RAISE: a secret, power shift or threat that raises the stakes (more than one beat if the length allows).
 4. CLIFFHANGER: cut on the biggest open question, before its answer.
-Never show how the series ends or reveal its final twist. It must make sense to a stranger.
+Never show how the series ends or reveal its final twist. It must make sense to a stranger, as ONE story:
+- Follow ONE lead through it: every story piece (not the 1-2 s flashes) shows or names that lead.
+- Each story piece must follow from the one before by BUT (a reversal) or SO (a consequence), never "and then". Write this as the spine.
 Build it from the story's turning points (given below) up to, but never including, the climax. Convey the show's mood.
 You may open with 2-3 FLASH pieces of 1-2 s each (a gasp, a slap, a tear, a ring held out): a burst of emotion before the story beats.
 Pieces should be short (1-2 s for flashes, 8-18 s otherwise). Use ONLY the event ids given. Reply with JSON only:
-{{{{"trailers":[{{{{"title":"3-6 word name","segments":[{{{{"first":"id","last":"id"}}}}],"hook":"...","cliffhanger":"...","why":"...","mood":"...","hook_type":"...","evidence":{{{{"opens_on":"id","conflict_type":"...","ends_on":"id","open_question":"...","needs_backstory":false,"stakes":"...","power_shift":false,"intense_beats":["id"]}}}}}}}}]}}}}"""
+{{{{"trailers":[{{{{"title":"3-6 word name","segments":[{{{{"first":"id","last":"id"}}}}],"hook":"...","cliffhanger":"...","why":"...","mood":"...","hook_type":"...","lead":"NAME","spine":[{{{{"beat":"what happens in piece 1, 3-8 words","link":""}}}},{{{{"beat":"...","link":"but"}}}},{{{{"beat":"...","link":"so"}}}}],"evidence":{{{{"opens_on":"id","conflict_type":"...","ends_on":"id","open_question":"...","needs_backstory":false,"stakes":"...","power_shift":false,"intense_beats":["id"]}}}}}}}}]}}}}"""
 
 
 TRAILER_SYSTEM = trailer_system(60, 90)
@@ -333,25 +335,38 @@ def find_episode(provider, ep: Episode, eps: dict[int, Episode], cfg: RunConfig,
 
 def fit_teaser(t: dict, ep: Episode, eps: dict[int, Episode]) -> dict | None:
     """Keep the moment the model chose to hang on (its last event); slide the start until 8-20 s.
-    Mechanical, not taste: the model still chose what the teaser is about."""
+    If that moment is inside the episode's ending (models love the strongest beat, which is often the end),
+    hang instead on the latest question before the ending (else the latest exclamation, else the latest line).
+    Mechanical, not taste: no extra model call."""
     if not t.get("_segs"):
         return None
-    last_id = t["_segs"][-1].last
-    last = ep.by_id()[last_id]
-    starts = [e for e in ep.events if e.kind in ("dialogue", "action") and e.start <= last.start]
-    best = None
-    for e in reversed(starts):
-        built = build({"first": e.id, "last": last_id}, eps, TEASER_MIN, TEASER_MAX)
-        if built["code_ok"]:
-            if best is None or abs(built["length"] - 14) < abs(best["length"] - 14):
+    limit = ep.duration * TEASER_ENDING
+    chosen = ep.by_id()[t["_segs"][-1].last]
+    if chosen.end <= limit + 0.011:
+        hangs = [chosen]
+    else:
+        before = [e for e in ep.of("dialogue") if e.end <= limit + 0.011]
+        mark = lambda e: 0 if e.text.rstrip().endswith("?") else 1 if e.text.rstrip().endswith(("!", "…", "...")) else 2
+        hangs = sorted(before, key=lambda e: (mark(e), -e.start))[:6]
+    for last in hangs:
+        starts = [e for e in ep.events if e.kind in ("dialogue", "action") and e.start <= last.start]
+        best = None
+        for e in reversed(starts):
+            built = build({"first": e.id, "last": last.id}, eps, TEASER_MIN, TEASER_MAX)
+            if built["code_ok"] and (best is None or abs(built["length"] - 14) < abs(best["length"] - 14)):
                 best = built
-        if last.end - e.start > TEASER_MAX + 3:
-            break
-    if best is None:
-        return None
-    out = {**t, **best, "fitted": True}
-    _teaser_ending_check(out, ep)
-    return out if out["code_ok"] else None
+            if last.end - e.start > TEASER_MAX + 3:
+                break
+        if best is None:
+            continue
+        out = {**t, **best, "fitted": True}
+        if last is not chosen:
+            out["line"] = last.text
+            out["moved"] = "moved before the episode's ending: the AI's pick was in its last 15%"
+        _teaser_ending_check(out, ep)
+        if out["code_ok"]:
+            return out
+    return None
 
 
 def _teaser_ending_check(t: dict, ep: Episode) -> None:
@@ -440,9 +455,71 @@ def stitch(provider, pool: list[dict], eps: dict[int, Episode], cfg: RunConfig |
             continue
         item = {**_clean(p), **fit_pieces(p, eps, lo, hi), "stitched": True}
         item["source_episode"] = min((s.episode for s in item["_segs"]), default=0)
+        item["lead"] = str(p.get("lead") or "")[:40]
+        item["spine"] = [{"beat": str(b.get("beat") or "")[:90], "link": str(b.get("link") or "").lower()[:10]}
+                         for b in (p.get("spine") or []) if isinstance(b, dict)][:8]
+        if item["_segs"] and cfg and cfg.leads:
+            item["checks"].append(lead_check(item["_segs"], eps, cfg.leads))
         if len({s.episode for s in item["_segs"]}) >= 2:
             out.append(item)
     return out
+
+
+TITLES = {"LADY", "LORD", "MR", "MRS", "MS", "MISS", "SIR", "DUKE", "DUCHESS", "DOWAGER", "KING", "QUEEN", "PRINCE",
+          "PRINCESS", "DR", "THE", "YOUNG", "OLD", "MASTER", "MADAM"}
+FLASH = 3.0   # pieces shorter than this are emotion flashes; they don't need the lead
+
+
+def _name_words(leads: list[str]) -> set[str]:
+    return {w for l in leads for w in re.findall(r"\w+", l.upper()) if len(w) >= 3 and w not in TITLES}
+
+
+def pieces_without_lead(segs: list[Segment], eps: dict[int, Episode], leads: list[str]) -> list[int]:
+    """1-based story pieces (flashes excepted) where no lead speaks or is named."""
+    names = _name_words(leads)
+    if not names:
+        return []
+    out = []
+    for i, s in enumerate(segs, 1):
+        if s.length < FLASH:
+            continue
+        evs = [e for e in eps[s.episode].events if s.start - 0.011 <= e.start < s.end - 0.011 and e.kind != "camera"]
+        words = {w for e in evs for w in re.findall(r"\w+", f"{e.speaker} {e.text}".upper())}
+        if not names & words:
+            out.append(i)
+    return out
+
+
+def lead_check(segs: list[Segment], eps: dict[int, Episode], leads: list[str]) -> dict:
+    miss = pieces_without_lead(segs, eps, leads)
+    who = ", ".join(l.title() for l in leads[:3])
+    return {"name": "one_lead", "ok": not miss,
+            "detail": f"every story piece shows or names a lead ({who})" if not miss
+            else f"piece{'s' if len(miss) > 1 else ''} {', '.join(map(str, miss))} {'have' if len(miss) > 1 else 'has'} none of the leads ({who})"}
+
+
+RETELL_SYSTEM = """You are a stranger scrolling TikTok. You know NOTHING about this show. Below is one trailer, made of separate PIECES cut together.
+Retell the story it tells in ONE sentence, say who it is about, and say whether you lost the thread anywhere.
+Reply with JSON only: {"retell":"one sentence","about":"NAME","lost_at":0,"lost_why":""}
+"lost_at" is the number of the first piece where you could no longer follow who this is or why it follows from before; 0 if you followed all of it."""
+
+
+def retell_test(provider, item: dict, eps: dict[int, Episode], leads: list[str]) -> dict:
+    """The trailer only makes sense if a stranger can retell it as one story about one of the leads."""
+    parts = []
+    for i, s in enumerate(item["_segs"], 1):
+        parts.append(f"PIECE {i}:\n" + transcript([s], eps))
+    data = ask_json(provider, RETELL_SYSTEM, "\n\n".join(parts))
+    try:
+        lost = int(data.get("lost_at") or 0)
+    except (TypeError, ValueError):
+        lost = 0
+    lost = lost if 1 <= lost <= len(item["_segs"]) else 0
+    about = str(data.get("about") or "").strip()
+    names_lead = bool(_name_words([about]) & _name_words(leads)) if leads else True
+    return {"retell": str(data.get("retell") or "").strip(), "about": about, "about_a_lead": names_lead,
+            "lost_at": lost, "lost_why": str(data.get("lost_why") or "").strip() if lost else "",
+            "ok": lost == 0 and names_lead}
 
 
 def pool_from_run(run: dict, eps: dict[int, Episode]) -> list[dict]:
@@ -473,7 +550,7 @@ def make_trailers(provider, run: dict, eps: dict[int, Episode], instruction: str
         if not t["code_ok"]:
             continue
         try:
-            t["ai_checks"] = judge(provider, t, eps)
+            t["ai_checks"] = judge(provider, t, eps, cfg.leads)
             apply_rubric(t, eps, cfg.leads)
         except ProviderError as err:
             if err.fatal:
@@ -488,7 +565,7 @@ def _words(t: str) -> str:
     return " ".join(re.findall(r"\w+", t.lower()))
 
 
-def judge(provider, item: dict, eps: dict[int, Episode]) -> dict:
+def judge(provider, item: dict, eps: dict[int, Episode], leads: list[str] | None = None) -> dict:
     """Two fresh models. The stranger sees ONLY the ad (like a real viewer) and says whether it can follow it and
     whether the ad answers its own question; to say "answered" it must quote the ad, and code checks the quote is
     really in it. The spoiler check alone sees the series synopsis. Neither sees what comes after the cut: a judge
@@ -506,7 +583,9 @@ def judge(provider, item: dict, eps: dict[int, Episode]) -> dict:
         reason = "The judge said it was answered but could not quote where in the promo, so it counts as open" + (f": {question}" if question else "")
     else:
         reason = f"Still open at the cut: {question}" if question else "Still open at the cut"
+    story = retell_test(provider, item, eps, leads or []) if item.get("stitched") else None
     return {
+        **({"story": story} if story else {}),
         "cold_viewer": {k: cold.get(k) for k in ("who_to_root_for", "stakes", "open_question", "understandable", "swipe_second")},
         "cliffhanger_open": not proven,
         "cliffhanger_reason": reason,
@@ -630,7 +709,7 @@ def run_show(provider, eps: dict[int, Episode], show_title: str, cfg: RunConfig 
             if cfg.judge:
                 for t in trailers:
                     try:
-                        t["ai_checks"] = judge(provider, t, eps)
+                        t["ai_checks"] = judge(provider, t, eps, cfg.leads)
                         apply_rubric(t, eps, cfg.leads)
                     except ProviderError as err:
                         if err.fatal:

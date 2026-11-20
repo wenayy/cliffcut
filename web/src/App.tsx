@@ -8,7 +8,7 @@ import { ModelsTable } from './components/ModelsTable'
 import { QualityReport, rankReason } from './components/QualityReport'
 import { RunPanel } from './components/RunPanel'
 import type { Agreement, CheckResult, Episode, PromoDraft, Run, SegIn, Show, ShowRef } from './lib'
-import { api, download, fromRun, HOOKS, setPasscode, tc, toCSV, toEDL } from './lib'
+import { api, DEMO, download, fromRun, HOOKS, REPO, setPasscode, tc, toCSV, toEDL } from './lib'
 
 type View = 'promos' | 'teasers' | 'trailers' | 'episodes' | 'run' | 'models' | 'quality'
 
@@ -23,7 +23,7 @@ export default function App() {
   const [show, setShow] = useState<Show | null>(null)
   const [needPass, setNeedPass] = useState(false)
   const [fatal, setFatal] = useState<string | null>(null)
-  const [view, setView] = useState<View>('run')
+  const [view, setView] = useState<View>(DEMO ? 'promos' : 'run')
   const [epNo, setEpNo] = useState(1)
   const [eps, setEps] = useState<Record<number, Episode>>({})
   const [runs, setRuns] = useState<Run[]>([])
@@ -127,7 +127,7 @@ export default function App() {
     if (!active || active.segments.length === 0) { setResult(null); return }
     setChecking(true)
     const t = setTimeout(() => {
-      api.check(showId, active.segments, limits.min, limits.max)
+      api.check(showId, active.segments, limits.min, limits.max, active.kind === 'trailer' ? run?.leads ?? undefined : undefined)
         .then(r => {
           if (active.ai) {   // keep the pipeline-only checks (e.g. a teaser must not show the ending)
             const extra = active.ai.checks.filter(c => !r.checks.some(x => x.name === c.name))
@@ -288,13 +288,18 @@ export default function App() {
       {/* rail */}
       <aside className="w-[248px] shrink-0 bg-ink-0 border-r hairline flex flex-col">
         <div className="h-14 px-4 flex items-center"><Logo /></div>
+        {DEMO && (
+          <p className="mx-3 mb-3 rounded-[10px] bg-ink-2 px-3 py-2 text-[12px] leading-[18px] text-fg-3">
+            Online demo, read-only: real runs on shows written for this repo. To run it on your own scripts, see <a href={REPO} className="text-fg-2 underline underline-offset-2 hover:text-fg-1">GitHub</a>.
+          </p>
+        )}
         <div className="px-3 pt-1 pb-5">
           <label className="relative block">
             <span className="sr-only">Show</span>
             <select value={showId} onChange={e => setShowId(e.target.value)}
               className="w-full appearance-none rounded-[8px] bg-transparent px-2 py-1.5 pr-7 text-[13px] text-fg-1 hover:bg-ink-2 outline-none">
-              {([['sample', 'Demo show (written for this demo)'], ['kuku', "Kuku's show (private)"], ['up-', 'Your uploads']] as const).map(([k, label]) => {
-                const group = shows.filter(x => k === 'up-' ? x.id.startsWith('up-') : x.id === k)
+              {([['sample', 'Demo show (written for this demo)'], ['kuku', "Kuku's show (private)"], ['ex-', 'Test shows: other genres, languages, formats'], ['up-', 'Your uploads']] as const).map(([k, label]) => {
+                const group = shows.filter(x => k.endsWith('-') ? x.id.startsWith(k) : x.id === k)
                 return group.length ? (
                   <optgroup key={k} label={label} className="bg-ink-2">
                     {group.map(x => <option key={x.id} value={x.id} className="bg-ink-2">{x.title}{x.locked ? ' (locked)' : ''}</option>)}

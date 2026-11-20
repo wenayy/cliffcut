@@ -67,6 +67,7 @@ function plainCheck(name: string, detail: string, limits: { min: number; max: nu
     case 'ends_on_reaction': return { label: 'Holds on the reaction after the last line', note: detail.replace('held after the last word', 'held on the face') }
     case 'clean_cuts': return { label: 'Clean cuts: no chopped words, no flashes', note: detail.startsWith('no chopped') ? '' : detail }
     case 'no_ending': return { label: "Doesn't show the episode's ending", note: detail }
+    case 'one_lead': return { label: 'Follows one lead through every piece', note: detail }
     default: return { label: name, note: detail }
   }
 }
@@ -120,6 +121,9 @@ export function Inspector({ promo, result, checking, error, eps, limits, total, 
     checks.push({ ok: j.cold_viewer.understandable !== false, label: 'A stranger can follow it',
       bad: 'a stranger may not follow it', note: [j.cold_viewer.who_to_root_for && `Roots for ${j.cold_viewer.who_to_root_for}.`, j.cold_viewer.open_question && `Wants to know: ${j.cold_viewer.open_question}`].filter(Boolean).join(' ') })
     checks.push({ ok: !j.spoiler, label: 'No spoiler', note: j.spoiler ? j.spoiler_reason : '', bad: 'it may give away a later twist' })
+    if (j.story) checks.push({ ok: j.story.ok, label: 'A stranger can retell it as one story',
+      note: j.story.lost_at ? `Lost the thread at piece ${j.story.lost_at}: ${j.story.lost_why}` : j.story.ok ? `“${j.story.retell}”` : `Thought it was about ${j.story.about || 'someone else'}`,
+      bad: j.story.lost_at ? `a stranger lost the thread at piece ${j.story.lost_at}` : 'a stranger could not tell whose story it is' })
   }
   result?.checks.forEach(c => { const pc = plainCheck(c.name, c.detail, limits); checks.push({ ok: c.ok, ...pc }) })
   const failing = checks.filter(c => !c.ok)
@@ -190,6 +194,33 @@ export function Inspector({ promo, result, checking, error, eps, limits, total, 
         )}
 
         {/* what it is */}
+        {promo.kind === 'trailer' && ((ai?.spine?.length ?? 0) > 0 || j?.story) && (
+          <Section title="The story it tells">
+            {ai?.spine && ai.spine.length > 0 && (
+              <ol className="space-y-1.5">
+                {ai.spine.map((b, i) => (
+                  <li key={i} className="grid grid-cols-[40px_1fr] gap-x-2 text-[13px] leading-5">
+                    <span className="font-mono text-[11px] uppercase tracking-normal text-pencil pt-0.5">{i === 0 ? 'Start' : b.link || 'then'}</span>
+                    <span className="text-fg-1">{b.beat}</span>
+                  </li>
+                ))}
+              </ol>
+            )}
+            <p className="text-[12px] leading-[18px] text-fg-3">Each piece has to follow from the one before by <span className="text-fg-2">but</span> or <span className="text-fg-2">so</span>, never “and then”{ai?.lead ? <>, and every piece follows <span className="text-fg-2">{ai.lead.toLowerCase().replace(/(^|\s)\p{L}/gu, m => m.toUpperCase())}</span></> : ''}.</p>
+            {j?.story && (
+              <div className={`rounded-[10px] px-3 py-2 text-[13px] leading-5 ${j.story.ok ? 'bg-ink-2 text-fg-2' : 'bg-bad/10 text-fg-1'}`}>
+                <p className="text-[12px] text-fg-3">A stranger who saw only this trailer retold it as:</p>
+                <p className="mt-0.5">“{j.story.retell}”</p>
+                {j.story.lost_at > 0 && (
+                  <button onClick={() => segs[j.story!.lost_at - 1] && onJump(segs[j.story!.lost_at - 1].episode)} className="mt-1 text-left text-[12px] text-bad hover:underline underline-offset-2">
+                    Lost the thread at piece {j.story.lost_at}: {j.story.lost_why}. Consider removing it below.
+                  </button>
+                )}
+              </div>
+            )}
+          </Section>
+        )}
+
         <Section title="What this promo is">
           {ai?.hook && <Row k="Opens on">{ai.hook}</Row>}
           {(ai?.cliffhanger || ai?.line) && <Row k="Cuts on">{ai.cliffhanger || ai.line}</Row>}

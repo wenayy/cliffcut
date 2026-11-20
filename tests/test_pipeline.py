@@ -6,7 +6,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-from promo.pipeline import COLD_SYSTEM, FIND_SYSTEM, GUARD_SYSTEM, STITCH_SYSTEM, RunConfig, rank, run_show
+from promo.pipeline import COLD_SYSTEM, FIND_SYSTEM, GUARD_SYSTEM, RETELL_SYSTEM, STITCH_SYSTEM, RunConfig, rank, run_show
 from promo.providers import Provider, ProviderError, ReplayProvider, parse_json
 from promo.timeline import load_show
 
@@ -48,6 +48,8 @@ def fake_model(short_first=False):
             return '{"opportunity":1,"change_of_plans":2,"point_of_no_return":2,"major_setback":3,"climax":3,"mood":"tense","themes":["class"]}'
         if system == COLD_SYSTEM:
             return '```json\n{"who_to_root_for":"the maid","stakes":"the house","open_question":"is she the heir","understandable":true,"swipe_second":null,"answered_in_ad":false,"answered_by":""}\n```'
+        if system == RETELL_SYSTEM:
+            return '{"retell":"A maid is revealed as the heir and forced into a marriage","about":"MIRA","lost_at":0,"lost_why":""}'
         if system == GUARD_SYSTEM:
             return '{"spoiler": false, "spoiler_reason": "",}'
         raise AssertionError("unexpected prompt")
@@ -265,3 +267,31 @@ def test_judge_needs_a_quote_from_the_promo_to_call_a_cliffhanger_answered():
     assert invented["cliffhanger_open"] is True               # claimed, but not in the promo: stays open
     proven = judge(model(real_line), item, EPS)
     assert proven["cliffhanger_open"] is False and real_line[:20] in proven["cliffhanger_reason"]
+
+
+def test_trailer_must_be_one_story_about_a_lead():
+    from promo.pipeline import _build, lead_check, retell_test
+    trailer = _build({"segments": [{"first": lines(1)[3], "last": lines(1)[6]}, {"first": lines(2)[3], "last": lines(2)[5]}]}, EPS, 0, 1e9)
+    speakers = {e.speaker for s in trailer["_segs"] for e in EPS[s.episode].events if s.start <= e.start < s.end and e.kind == "dialogue"}
+    assert lead_check(trailer["_segs"], EPS, [sorted(speakers)[0]])["ok"]
+    assert not lead_check(trailer["_segs"], EPS, ["NOBODYHERE"])["ok"]          # a lead missing from every piece is caught
+    item = {**trailer, "stitched": True}
+    lost = retell_test(ReplayProvider(lambda s, u: '{"retell":"x","about":"Celeste","lost_at":2,"lost_why":"who is this man"}'), item, EPS, ["MIRA"])
+    assert lost["ok"] is False and lost["lost_at"] == 2 and lost["about_a_lead"] is False
+    fine = retell_test(ReplayProvider(lambda s, u: '{"retell":"Mira, a maid, inherits the house","about":"Mira Reyes","lost_at":0}'), item, EPS, ["MIRA"])
+    assert fine["ok"] is True
+
+
+def test_a_teaser_in_the_ending_is_moved_before_it_not_dropped():
+    from promo.pipeline import TEASER_ENDING, _teaser_ending_check, build, fit_teaser
+    ep = EPS[2]
+    tail = [e for e in ep.of("dialogue") if e.start > ep.duration * TEASER_ENDING]
+    if not tail:
+        import pytest
+        pytest.skip("no line in the ending of this sample episode")
+    t = {"line": tail[-1].text, **build({"first": tail[0].id, "last": tail[-1].id}, EPS, 8, 20)}
+    _teaser_ending_check(t, ep)
+    assert not t["code_ok"]
+    fixed = fit_teaser(t, ep, EPS)
+    assert fixed and fixed["code_ok"] and fixed["moved"]
+    assert fixed["_segs"][-1].end <= ep.duration * TEASER_ENDING + 0.02

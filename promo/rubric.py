@@ -125,11 +125,21 @@ def apply_rubric(item: dict, eps: dict[int, Episode], leads: list[str] | None = 
     n = len(item["_segs"])
     add("clarity", 3 if n == 1 or item.get("stitched") else 2 if n == 2 else 1, 3,
         "One continuous piece" if n == 1 else f"{n} pieces joined" + (" (a trailer)" if item.get("stitched") else ""))
-    if j:
+    if j and j.get("story"):           # a trailer: one story a stranger can retell, about a lead
+        st = j["story"]
+        add("clarity", 3 if st["ok"] else 1 if st["about_a_lead"] else 0, 3,
+            f"A stranger retold it: “{st['retell'][:90]}”" if st["ok"]
+            else f"A stranger lost the thread at piece {st['lost_at']}: {st['lost_why'][:80]}" if st["lost_at"]
+            else f"A stranger thought it was about {st['about'] or 'someone else'}, not a lead")
+    elif j:
         ok = j["cold_viewer"].get("understandable") is not False
         add("clarity", 3 if ok else 0, 3, "Judge: a stranger understood it" if ok else "Judge: a stranger could not follow it")
     else:
         add("clarity", 1.5, 3, "Not checked by the judge yet")
+    if item.get("stitched"):
+        lc = next((c for c in item.get("checks", []) if c["name"] == "one_lead"), None)
+        if lc:
+            add("standalone", 2 if lc["ok"] else 0, 2, "One lead through every piece" if lc["ok"] else lc["detail"].capitalize())
 
     scores = {}
     for axis in ("hook", "cliffhanger", "standalone", "emotion", "clarity"):

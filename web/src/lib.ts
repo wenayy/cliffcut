@@ -26,11 +26,13 @@ export type HookType = 'identity_reversal' | 'forced_marriage' | 'humiliation_re
 export interface AiChecks {
   cold_viewer: { who_to_root_for?: string; stakes?: string; open_question?: string; understandable?: boolean; swipe_second?: number | null }
   cliffhanger_open: boolean; cliffhanger_reason: string; spoiler: boolean; spoiler_reason: string
+  story?: { retell: string; about: string; about_a_lead: boolean; lost_at: number; lost_why: string; ok: boolean }
 }
 export interface RunPromo {
   rank?: number; title: string; hook: string; cliffhanger: string; why: string; hook_type: HookType
   scores: Record<string, number>; score?: number; breakdown?: { axis: string; points: number; max: number; why: string }[]; segments: SegOut[]; length: number; checks: Check[]
   problems: string[]; code_ok: boolean; ai_checks?: AiChecks; stitched?: boolean; repaired?: boolean; request?: string; hook_label?: string
+  lead?: string; spine?: { beat: string; link: string }[]
   source_episode?: number; line?: string; mood?: string; for_episode?: number; from_episode?: number
 }
 export interface Run {
@@ -87,7 +89,41 @@ let passcode = ''
 try { passcode = sessionStorage.getItem('cliffcut.passcode') ?? '' } catch { /* storage blocked */ }
 export function setPasscode(p: string) { passcode = p; try { sessionStorage.setItem('cliffcut.passcode', p) } catch { /* */ } }
 
+/* The online demo (Cloudflare Pages) has no server: finished runs are baked in as JSON, and anything that would
+   call a model or spend a key says so. Built with VITE_DEMO=1; see scripts/export_demo.py. */
+export const DEMO = import.meta.env.VITE_DEMO === '1'
+export const REPO = 'https://github.com/wenayy/cliffcut'
+export const READ_ONLY = `This online demo is read-only: it shows finished runs. To run models on your own scripts, edit cuts or export video, run Cliffcut locally (${REPO}).`
+
+export function checkKey(segments: SegIn[], min: number, max: number, leads?: string[] | null) {
+  return `${min}|${max}|${leads?.length ? 'L' : ''}|` + segments.map(s => [s.episode, s.first, s.last, s.start ?? '', s.end ?? ''].join(':')).join(',')
+}
+
+const demoChecks: Record<string, Record<string, unknown>> = {}
+async function demoReq<T>(path: string, init?: RequestInit): Promise<T> {
+  const url = path.split('?')[0]
+  const fail = (m: string, status = 400) => Object.assign(new Error(m), { status })
+  if ((init?.method ?? 'GET') === 'GET') {
+    if (url.endsWith('/videos')) return { episodes: [] } as T
+    if (url.endsWith('/estimate')) throw fail(READ_ONLY)
+    const r = await fetch(`/demo${url.replace(/^\/api/, '')}.json`)
+    if (!r.ok) throw fail(r.status === 404 ? 'Not in the online demo' : `${r.status}`, r.status)
+    return r.json() as Promise<T>
+  }
+  if (url.endsWith('/check')) {
+    const sid = url.split('/')[3]
+    const b = JSON.parse(String(init?.body ?? '{}'))
+    demoChecks[sid] ??= await fetch(`/demo/shows/${sid}/checks.json`).then(r => r.ok ? r.json() : {})
+    const hit = demoChecks[sid][checkKey(b.segments, b.min, b.max, b.leads)]
+    if (hit) return hit as T
+    throw fail('Edited cuts are re-checked by the local app. This online demo shows the cuts as the AI found them.')
+  }
+  if (url.endsWith('/decide')) return {} as T          // approvals stay in this browser
+  throw fail(READ_ONLY)
+}
+
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
+  if (DEMO) return demoReq<T>(path, init)
   const headers: Record<string, string> = { ...(init?.body instanceof FormData ? {} : { 'content-type': 'application/json' }) }
   if (passcode) headers['x-passcode'] = passcode
   const r = await fetch(path, { ...init, headers })
@@ -107,7 +143,7 @@ export const api = {
   shows: () => req<{ shows: ShowRef[] }>('/api/shows'),
   show: (sid: string) => req<Show>(`/api/shows/${sid}`),
   episode: (sid: string, n: number) => req<Episode>(`/api/shows/${sid}/episodes/${n}`),
-  check: (sid: string, segments: SegIn[], min = 20, max = 60) => req<CheckResult>(`/api/shows/${sid}/check`, post({ segments, min, max })),
+  check: (sid: string, segments: SegIn[], min = 20, max = 60, leads?: string[]) => req<CheckResult>(`/api/shows/${sid}/check`, post({ segments, min, max, leads })),
   runs: (sid: string) => req<{ runs: Run[]; agreement: Agreement }>(`/api/shows/${sid}/runs`),
   providers: () => req<{ providers: ProviderInfo[] }>('/api/providers'),
   models: (p: { provider: string; base_url?: string; api_key?: string }) => req<{ models: string[] }>('/api/models', post(p)),
@@ -128,6 +164,7 @@ export const api = {
     return req<{ episodes: number[]; saved: number[] }>(`/api/shows/${sid}/videos`, { method: 'POST', body: f })
   },
   render: async (sid: string, segments: SegIn[], title: string, vertical: boolean, min = 20, max = 60) => {
+    if (DEMO) throw new Error(READ_ONLY)
     const headers: Record<string, string> = { 'content-type': 'application/json' }
     if (passcode) headers['x-passcode'] = passcode
     const r = await fetch(`/api/shows/${sid}/render`, { method: 'POST', headers, body: JSON.stringify({ segments, title, vertical, min, max }) })

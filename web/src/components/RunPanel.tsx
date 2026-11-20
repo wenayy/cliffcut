@@ -1,7 +1,7 @@
 import { Eye, EyeOff, FileText, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { Job, ProviderInfo, Show } from '../lib'
-import { api } from '../lib'
+import { api, DEMO, READ_ONLY } from '../lib'
 import { Working } from './Logo'
 
 const STAGES: Record<string, string> = {
@@ -138,6 +138,7 @@ export function RunPanel({ show, onUploaded, onDone, onBrowse, hasRuns }: Props)
           Pick the scripts, pick a model, press Find promos. It reads every episode, picks 20–60 s promos with a hook in the first 3 s and a cliffhanger at the cut, checks each one, and ranks them.
           {hasRuns && <> Or <button onClick={onBrowse} className="text-fg-1 underline underline-offset-2 decoration-fg-3/50 hover:decoration-fg-1">look at the last run's promos</button>.</>}
         </p>
+        {DEMO && <p className="mt-3 rounded-[10px] bg-ink-2 px-3 py-2.5 text-[13px] leading-5 text-fg-2">{READ_ONLY}</p>}
       </header>
 
       {/* 1. scripts */}
