@@ -47,9 +47,9 @@ def fake_model(short_first=False):
         if system.startswith("You map a serial drama"):
             return '{"opportunity":1,"change_of_plans":2,"point_of_no_return":2,"major_setback":3,"climax":3,"mood":"tense","themes":["class"]}'
         if system == COLD_SYSTEM:
-            return '```json\n{"who_to_root_for":"the maid","stakes":"the house","open_question":"is she the heir","understandable":true,"swipe_second":null}\n```'
+            return '```json\n{"who_to_root_for":"the maid","stakes":"the house","open_question":"is she the heir","understandable":true,"swipe_second":null,"answered_in_ad":false,"answered_by":""}\n```'
         if system == GUARD_SYSTEM:
-            return '{"cliffhanger_open": true, "cliffhanger_reason": "answer comes later", "spoiler": false, "spoiler_reason": "",}'
+            return '{"spoiler": false, "spoiler_reason": "",}'
         raise AssertionError("unexpected prompt")
     return answer, calls
 
@@ -244,3 +244,24 @@ def test_editor_can_ask_for_another_trailer_from_a_finished_run():
     trailer_prompt = next(u for u in prompts if "STRONGEST MOMENTS" in u)
     assert "Focus on the maid's revenge" in trailer_prompt and "Return 1 trailer" in trailer_prompt
     json.dumps(made)
+
+
+def test_judge_needs_a_quote_from_the_promo_to_call_a_cliffhanger_answered():
+    from promo.pipeline import judge, _build
+    raw = {"segments": [{"first": lines(1)[0], "last": lines(1)[6]}]}
+    item = _build(raw, EPS, 0, 1e9) | {"length": 40.0}
+    real_line = EPS[1].by_id()[lines(1)[3]].text
+
+    def model(answered_by):
+        def answer(system, user):
+            if system == COLD_SYSTEM:
+                return json.dumps({"who_to_root_for": "Mira", "open_question": "is she the heir", "understandable": True,
+                                   "answered_in_ad": True, "answered_by": answered_by})
+            assert "AFTER THE CUT" not in user.upper()        # no judge ever sees the future
+            return '{"spoiler": false, "spoiler_reason": ""}'
+        return ReplayProvider(answer)
+
+    invented = judge(model("Mira is crowned queen and everyone cheers"), item, EPS)
+    assert invented["cliffhanger_open"] is True               # claimed, but not in the promo: stays open
+    proven = judge(model(real_line), item, EPS)
+    assert proven["cliffhanger_open"] is False and real_line[:20] in proven["cliffhanger_reason"]

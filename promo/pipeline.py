@@ -157,13 +157,13 @@ def story_map(provider, eps: dict[int, Episode]) -> dict:
 STITCH_SYSTEM = TRAILER_SYSTEM
 
 COLD_SYSTEM = """You are a stranger scrolling TikTok. You know NOTHING about this show. Below is everything you see and hear in one ad. Answer honestly from the ad alone.
-Reply with JSON only: {"who_to_root_for":"...","stakes":"...","open_question":"...","understandable":true,"swipe_second":null}
-"understandable" is false if you could not follow who is who or why it matters. "swipe_second" is the second at which a bored viewer would swipe away, or null if they would watch to the end."""
+Reply with JSON only: {"who_to_root_for":"...","stakes":"...","open_question":"...","understandable":true,"swipe_second":null,"answered_in_ad":false,"answered_by":""}
+"understandable" is false if you could not follow who is who or why it matters. "swipe_second" is the second at which a bored viewer would swipe away, or null if they would watch to the end.
+"open_question" is what you most need to know when the ad cuts off. "answered_in_ad" is true only if something INSIDE the ad, before it cuts, already answers that question or plays out its fallout, so you would not need to see more. If true, "answered_by" quotes that exact line or action from the ad; otherwise "". You cannot know what happens after the ad ends, so never guess it."""
 
-GUARD_SYSTEM = """You check a promo for a microdrama against what happens right AFTER it is cut, and against the whole series synopsis.
-- cliffhanger_open: true if a viewer is left needing the next scene. A reveal, threat, accusation or punchline landing AT the cut, whose consequence or reaction we have not yet seen, is the classic cliffhanger and counts as OPEN (the question becomes "what happens now?"). false only if the promo also plays out the fallout: the confrontation resolves, the threat is defused, the mystery is explained, so nothing pulls the viewer forward.
-- spoiler: true ONLY if the promo reveals a major twist from much later in the series (a hidden identity, a death, the ending) that would ruin it for a new viewer. Showing what happens in this episode or the next one or two is normal promo material and is NOT a spoiler.
-Reply with JSON only: {"cliffhanger_open":true,"cliffhanger_reason":"...","spoiler":false,"spoiler_reason":"..."}"""
+GUARD_SYSTEM = """You check a promo for a microdrama against the whole series synopsis, for spoilers only.
+spoiler: true ONLY if the promo reveals a major twist from much later in the series (a hidden identity, a death, the ending) that would ruin it for a new viewer. Showing what happens in this episode or the next one or two is normal promo material and is NOT a spoiler.
+Reply with JSON only: {"spoiler":false,"spoiler_reason":"..."}"""
 
 
 # ---------------------------------------------------------------- text helpers
@@ -484,18 +484,32 @@ def make_trailers(provider, run: dict, eps: dict[int, Episode], instruction: str
     return out
 
 
+def _words(t: str) -> str:
+    return " ".join(re.findall(r"\w+", t.lower()))
+
+
 def judge(provider, item: dict, eps: dict[int, Episode]) -> dict:
+    """Two fresh models. The stranger sees ONLY the ad (like a real viewer) and says whether it can follow it and
+    whether the ad answers its own question; to say "answered" it must quote the ad, and code checks the quote is
+    really in it. The spoiler check alone sees the series synopsis. Neither sees what comes after the cut: a judge
+    that can see the future marks every working cliffhanger as "resolved"."""
     segs = item["_segs"]
     seen = transcript(segs, eps)
     cold = ask_json(provider, COLD_SYSTEM, f"THE AD ({item['length']:.0f} s):\n{seen}")
-    guard = ask_json(provider, GUARD_SYSTEM,
-                     f"SERIES SYNOPSIS:\n{synopsis(eps)}\n\nTHE PROMO (everything the viewer sees):\n{seen}\n\n"
-                     f"WHAT HAPPENS RIGHT AFTER THE CUT (NOT in the promo; the viewer does not see this. If the answer or reaction "
-                     f"is only here, the cliffhanger is OPEN):\n{after_cut(segs[-1], eps)}")
+    guard = ask_json(provider, GUARD_SYSTEM, f"SERIES SYNOPSIS:\n{synopsis(eps)}\n\nTHE PROMO:\n{seen}")
+    quote = _words(str(cold.get("answered_by") or ""))
+    proven = bool(cold.get("answered_in_ad")) and len(quote) >= 8 and quote[:80] in _words(seen)
+    question = str(cold.get("open_question") or "").strip()
+    if proven:
+        reason = f"Answered inside the promo: “{str(cold.get('answered_by')).strip()[:120]}”"
+    elif cold.get("answered_in_ad"):
+        reason = "The judge said it was answered but could not quote where in the promo, so it counts as open" + (f": {question}" if question else "")
+    else:
+        reason = f"Still open at the cut: {question}" if question else "Still open at the cut"
     return {
         "cold_viewer": {k: cold.get(k) for k in ("who_to_root_for", "stakes", "open_question", "understandable", "swipe_second")},
-        "cliffhanger_open": bool(guard.get("cliffhanger_open", True)),
-        "cliffhanger_reason": str(guard.get("cliffhanger_reason") or ""),
+        "cliffhanger_open": not proven,
+        "cliffhanger_reason": reason,
         "spoiler": bool(guard.get("spoiler", False)),
         "spoiler_reason": str(guard.get("spoiler_reason") or ""),
     }
