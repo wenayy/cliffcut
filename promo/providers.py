@@ -128,7 +128,8 @@ class Provider:
                 self.usage.retries += 1
                 self.sleep(delay); delay *= 2
                 continue
-            if r.status_code == 429 and "quota" in _message(r).lower():
+            msg429 = _message(r).lower() if r.status_code == 429 else ""
+            if r.status_code == 429 and any(k in msg429 for k in ("quota", "per day", "(tpd)", "(rpd)", "daily")):
                 self.exhausted = f"{self.name}: quota used up ({_message(r)[:120]}). Try again later, or use another model."
                 raise ProviderError(self.exhausted, fatal=False)
             if r.status_code in (429, 500, 502, 503, 504) and attempt < self.max_retries:
@@ -145,6 +146,8 @@ class Provider:
                 # drop the field, remember it for this run, and retry once
                 msg = _message(r)
                 bad = next((k for k in ("temperature", "response_format") if k in body and k in msg), None)
+                if not bad and "response_format" in body and "json" in msg.lower():
+                    bad = "response_format"   # the provider's strict JSON mode refused the answer; our parser recovers it
                 if bad:
                     self.dropped.add(bad)
                     body.pop(bad)

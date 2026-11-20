@@ -12,6 +12,11 @@ Order of attempts, per file:
 from __future__ import annotations
 
 import re
+import shutil
+import subprocess
+import zipfile
+from pathlib import Path
+from xml.etree import ElementTree
 
 from .providers import ask_json
 from .timeline import Episode, Event, looks_like_kuku, parse_kuku
@@ -157,12 +162,98 @@ def convert_with_model(text: str, number: int, provider) -> list[Episode]:
     return out
 
 
+# ---------------------------------------------------------------- other file types
+
+SCRIPT_SUFFIXES = (".txt", ".md", ".fountain", ".text", "", ".srt", ".vtt", ".fdx", ".docx", ".pdf")
+
+
+def read_text(path: Path) -> str:
+    """Plain text from any supported file: text, Final Draft (.fdx), Word (.docx), PDF (via pdftotext)."""
+    suf = path.suffix.lower()
+    if suf == ".docx":
+        with zipfile.ZipFile(path) as z:
+            xml = z.read("word/document.xml").decode("utf-8", "replace")
+        xml = re.sub(r"</w:p>", "\n", xml)
+        return re.sub(r"<[^>]+>", "", xml)
+    if suf == ".pdf":
+        if not shutil.which("pdftotext"):
+            raise ValueError(f"{path.name}: PDF needs pdftotext installed; or export the script as text")
+        return subprocess.run(["pdftotext", "-layout", str(path), "-"], capture_output=True, text=True).stdout
+    text = path.read_text(encoding="utf-8", errors="replace")
+    return fdx_to_screenplay(text) if suf == ".fdx" or text.lstrip().startswith("<?xml") and "FinalDraft" in text[:400] else text
+
+
+def fdx_to_screenplay(xml: str) -> str:
+    """Final Draft XML -> plain screenplay text (headings, action, CHARACTER, (parenthetical), dialogue)."""
+    root = ElementTree.fromstring(xml)
+    out = []
+    for para in root.iter("Paragraph"):
+        kind = para.get("Type", "")
+        txt = "".join(t.text or "" for t in para.iter("Text")).strip()
+        if not txt:
+            continue
+        if kind == "Character":
+            out += ["", txt.upper()]
+        elif kind == "Parenthetical":
+            out.append(txt if txt.startswith("(") else f"({txt})")
+        elif kind == "Dialogue":
+            out.append(txt)
+        else:   # Scene Heading, Action, Transition
+            out += ["", txt]
+    return "\n".join(out)
+
+
+_SUB_TIME = re.compile(r"(\d{1,2}:\d{2}:\d{2}[.,]\d{1,3}|\d{1,2}:\d{2}[.,]\d{1,3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}[.,]\d{1,3}|\d{1,2}:\d{2}[.,]\d{1,3})")
+
+
+def looks_like_subtitles(text: str) -> bool:
+    return len(_SUB_TIME.findall(text)) >= 3
+
+
+def parse_subtitles(text: str, number: int) -> Episode:
+    """SRT / WebVTT: real timestamps for every line. Speakers from "NAME: line" or "[NAME] line" when present;
+    a shot is assumed to change whenever the speaker does (marked as inferred)."""
+    from .timeline import seconds
+    ep = Episode(number=number, title=f"Episode {number}", source_format="subtitles")
+    count, prev = 0, None
+    for block in re.split(r"\n\s*\n", text.strip()):
+        m = _SUB_TIME.search(block)
+        if not m:
+            continue
+        a, b = seconds(m.group(1)), seconds(m.group(2))
+        body = " ".join(l.strip() for l in block[m.end():].strip().splitlines() if l.strip())
+        body = re.sub(r"<[^>]+>", "", body)
+        sm = re.match(r"^\[?([A-Z][A-Za-z .'-]{1,30}|[^\x00-\x7F]{1,20})\]?:\s*(.+)$", body) or re.match(r"^\[([^\]]{1,30})\]\s*(.+)$", body)
+        speaker, line = (sm.group(1).strip().upper(), sm.group(2)) if sm else ("", body.lstrip("- "))
+        if re.fullmatch(r"[\[(].*[\])]", line):          # [door slams] -> a sound
+            count += 1
+            ep.events.append(Event(f"e{number:02d}.{count:03d}", "sfx", a, b, line.strip("[]()")))
+            continue
+        if speaker != prev:
+            count += 1
+            ep.events.append(Event(f"e{number:02d}.{count:03d}", "camera", a, b, f"Guessed shot: {speaker.title() or 'next line'}"))
+        count += 1
+        ep.events.append(Event(f"e{number:02d}.{count:03d}", "dialogue", a, b, line, speaker or "VOICE", ""))
+        prev = speaker
+    cams = [e for e in ep.events if e.kind == "camera"]
+    for x, y in zip(cams, cams[1:]):
+        x.end = y.start
+    if cams:
+        cams[-1].end = max(e.end for e in ep.events)
+    if not ep.of("dialogue"):
+        raise ValueError("no subtitle lines found")
+    ep.events.sort(key=lambda e: (e.start, ("camera", "action", "dialogue", "sfx").index(e.kind)))
+    return ep
+
+
 def load_any(text: str, number: int, provider=None) -> list[Episode]:
     if looks_like_kuku(text):
         return [parse_kuku(text, fallback_number=number)]
+    if looks_like_subtitles(text):
+        return [parse_subtitles(text, number)]
     if looks_like_screenplay(text):
         return [parse_screenplay(body, n) for n, body in _split_episodes(text, number)]
     if provider is not None:
         return convert_with_model(text, number, provider)
-    raise ValueError("Unrecognised script format. Use Kuku's timestamped format or a standard screenplay, "
-                     "or pick a model so it can convert the file.")
+    raise ValueError("Unrecognised script format. Supported: Kuku's timestamped format, screenplays (Fountain, plain text, "
+                     "Final Draft .fdx, Word .docx, PDF) and subtitles (.srt, .vtt). Anything else needs a model to convert it.")

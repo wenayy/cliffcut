@@ -13,13 +13,17 @@ from __future__ import annotations
 import hmac
 import json
 import os
+import re
+import shutil
+import subprocess
 import threading
 import time
 import uuid
 from pathlib import Path
 
-from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, Header, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -161,14 +165,43 @@ async def upload(files: list[UploadFile] = File(...), title: str = Form("")):
         (folder / (name if Path(name).suffix else name + ".txt")).write_bytes(raw)
     try:
         eps = load_show(folder)
-    except ValueError as err:
-        raise HTTPException(422, f"Could not read the scripts: {err}") from err
+    except ValueError as err:   # an unknown format: let a model convert it, if any key is set up
+        prov = next((p for p in (_try_provider(n) for n in PRESETS) if p), None)
+        if not prov:
+            raise HTTPException(422, f"Could not read the scripts: {err}") from err
+        try:
+            eps = load_show(folder, provider=prov)
+        except (ValueError, ProviderError) as err2:
+            raise HTTPException(422, f"Could not read the scripts, even with {prov.name}: {err2}") from err2
     show_title = title.strip() or (eps[0].title if eps and eps[0].source_format != "kuku" else f"Upload {sid[3:]}")
     (UPLOADS / sid / "meta.json").write_text(json.dumps({"title": show_title}))
     SHOWS[sid] = {"path": folder, "title": show_title, "locked": False, "note": "Uploaded"}
     _cache[sid] = {e.number: e for e in eps}
     return {"id": sid, "title": show_title, "episodes": len(eps),
             "formats": sorted({e.source_format for e in eps})}
+
+
+@app.get("/api/shows/{sid}/estimate")
+def estimate(sid: str, pick_q: str = Query("", alias="episodes"), x_passcode: str | None = Header(None)):
+    """Rough size of a run before it starts, from the real script lengths (about 4 characters per token)."""
+    from promo.pipeline import FIND_SYSTEM, script_lines, synopsis
+    eps = episodes_all = episodes(sid, x_passcode)
+    pick = [int(x) for x in pick_q.split(",") if x.strip().isdigit()] or list(eps)
+    chosen = [eps[n] for n in pick if n in eps]
+    find = sum((len(FIND_SYSTEM) + len(script_lines(e)) + 1500) / 4 + 1500 for e in chosen)
+    repairs = 0.3 * find
+    finalists = min(16, 2 * len(chosen))
+    judge = finalists * 2 * ((len(synopsis(episodes_all)) + 2500) / 4 + 400)
+    trailers = 4 * 7000 if len(chosen) >= 3 else 0
+    calls = len(chosen) + round(0.3 * len(chosen)) + finalists * 2 + (5 if len(chosen) >= 3 else 0)
+    return {"episodes": len(chosen), "calls": calls, "tokens": int(round(find + repairs + judge + trailers, -3))}
+
+
+def _try_provider(name: str):
+    try:
+        return Provider.from_preset(name, cache_dir=RUNS / "cache")
+    except ProviderError:
+        return None
 
 
 # ------------------------------------------------------------------ models and runs
@@ -350,6 +383,84 @@ def agreement(runs: list[dict], top: int = 10) -> dict:
         found_by[latest[a]["id"]] = {p["rank"]: 1 + sum(1 for b in keys if b != a and any(_same(p, q) for q in latest[b]["promos"]))
                                      for p in latest[a]["promos"]}
     return {"models": keys, "matrix": matrix, "found_by": found_by}
+
+
+# ------------------------------------------------------------------ video: the promo as an actual MP4
+
+VIDEOS = ROOT / "uploads" / "videos"
+
+
+def _video_dir(sid: str) -> Path:
+    return VIDEOS / re.sub(r"[^a-zA-Z0-9_-]", "", sid)
+
+
+def _episode_videos(sid: str) -> dict[int, Path]:
+    d = _video_dir(sid)
+    out = {}
+    for f in sorted(d.glob("ep*.*")) if d.is_dir() else []:
+        m = re.match(r"ep(\d+)\.", f.name)
+        if m:
+            out[int(m.group(1))] = f
+    return out
+
+
+@app.get("/api/shows/{sid}/videos")
+def list_videos(sid: str, x_passcode: str | None = Header(None)):
+    episodes(sid, x_passcode)
+    return {"episodes": sorted(_episode_videos(sid))}
+
+
+@app.post("/api/shows/{sid}/videos")
+async def upload_videos(sid: str, files: list[UploadFile] = File(...), x_passcode: str | None = Header(None)):
+    """Episode video files, matched by the number in the file name (ep03.mp4, Episode 3.mov…). Local disk only."""
+    episodes(sid, x_passcode)
+    d = _video_dir(sid)
+    d.mkdir(parents=True, exist_ok=True)
+    saved = []
+    for f in files:
+        m = re.search(r"(\d+)", f.filename or "")
+        ext = Path(f.filename or "").suffix.lower() or ".mp4"
+        if not m or ext not in (".mp4", ".mov", ".m4v", ".mkv", ".webm"):
+            continue
+        n = int(m.group(1))
+        with open(d / f"ep{n:03d}{ext}", "wb") as out:
+            shutil.copyfileobj(f.file, out)
+        saved.append(n)
+    return {"episodes": sorted(_episode_videos(sid)), "saved": saved}
+
+
+class RenderIn(CheckIn):
+    title: str = "promo"
+    vertical: bool = True
+
+
+@app.post("/api/shows/{sid}/render")
+def render(sid: str, body: RenderIn, x_passcode: str | None = Header(None)):
+    """Cut the promo from the episode videos: every piece from its IN to its OUT, joined in order, as one MP4.
+    Straight cuts only (the brief asks for the moments, not editing): no music, no text."""
+    plan = check(sid, body, x_passcode)["segments"]
+    vids = _episode_videos(sid)
+    missing = sorted({s["episode"] for s in plan} - set(vids))
+    if missing:
+        raise HTTPException(422, f"Add the video for episode {', '.join(map(str, missing))} first")
+    if not shutil.which("ffmpeg"):
+        raise HTTPException(500, "ffmpeg is not installed on the server")
+    args, filt = ["ffmpeg", "-y", "-loglevel", "error"], []
+    size = "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920" if body.vertical else "scale=-2:1080"
+    for i, s in enumerate(plan):
+        args += ["-ss", f"{s['start_s']:.3f}", "-t", f"{s['length_s']:.3f}", "-i", str(vids[s["episode"]])]
+        filt.append(f"[{i}:v]{size},setsar=1,fps=30,format=yuv420p[v{i}];[{i}:a]aresample=48000,asetpts=PTS-STARTPTS[a{i}]")
+    filt.append("".join(f"[v{i}][a{i}]" for i in range(len(plan))) + f"concat=n={len(plan)}:v=1:a=1[v][a]")
+    out_dir = RUNS / "renders" / re.sub(r"[^a-zA-Z0-9_-]", "", sid)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    slug = re.sub(r"[^a-z0-9]+", "-", body.title.lower()).strip("-")[:60] or "promo"
+    out = out_dir / f"{slug}.mp4"
+    args += ["-filter_complex", ";".join(filt), "-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-preset", "veryfast",
+             "-crf", "20", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", str(out)]
+    r = subprocess.run(args, capture_output=True, text=True, timeout=600)
+    if r.returncode != 0:
+        raise HTTPException(500, f"Render failed: {r.stderr[-400:]}")
+    return FileResponse(out, media_type="video/mp4", filename=out.name)
 
 
 # ------------------------------------------------------------------ static app (deploy)

@@ -70,3 +70,29 @@ def test_editor_decisions_are_remembered(monkeypatch, tmp_path):
     t = c.post("/api/taste", json={"promo_id": "r1:promo:2", "decision": "draft"}).json()   # undo
     assert t["approved"] == 1 and t["rejected"] == 0
     assert [d["title"] for d in t["decisions"]] == ["Slap"]
+
+
+def test_render_cuts_the_promo_from_episode_videos(monkeypatch, tmp_path):
+    import shutil
+    import subprocess
+    import pytest
+    if not shutil.which("ffmpeg"):
+        pytest.skip("ffmpeg not installed")
+    monkeypatch.setattr(srv, "VIDEOS", tmp_path / "videos")
+    monkeypatch.setattr(srv, "RUNS", tmp_path / "runs")
+    clip = tmp_path / "ep01.mp4"
+    subprocess.run(["ffmpeg", "-loglevel", "error", "-f", "lavfi", "-i", "testsrc2=size=320x240:rate=25:duration=85",
+                    "-f", "lavfi", "-i", "sine=duration=85", "-shortest", "-c:v", "libx264", "-preset", "ultrafast", str(clip)], check=True)
+    up = c.post("/api/shows/sample/videos", files=[("files", ("ep01.mp4", clip.open("rb"), "video/mp4"))]).json()
+    assert up["episodes"] == [1]
+    ep = c.get("/api/shows/sample/episodes/1").json()
+    L = [e["id"] for e in ep["events"] if e["kind"] == "dialogue"]
+    r = c.post("/api/shows/sample/render", json={"segments": [{"episode": 1, "first": L[0], "last": L[2]}, {"episode": 1, "first": L[4], "last": L[5]}], "title": "Test cut"})
+    assert r.status_code == 200 and r.headers["content-type"] == "video/mp4"
+    out = tmp_path / "out.mp4"
+    out.write_bytes(r.content)
+    dur = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(out)], capture_output=True, text=True).stdout)
+    plan = c.post("/api/shows/sample/check", json={"segments": [{"episode": 1, "first": L[0], "last": L[2]}, {"episode": 1, "first": L[4], "last": L[5]}]}).json()
+    assert abs(dur - plan["length"]) < 0.3        # the MP4 is exactly the planned cut
+    missing = c.post("/api/shows/sample/render", json={"segments": [{"episode": 2, "first": "e02.002", "last": "e02.004"}]})
+    assert missing.status_code == 422 and "episode 2" in missing.json()["detail"]

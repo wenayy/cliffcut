@@ -16,7 +16,9 @@ interface Props {
   onChange: (p: PromoDraft) => void
   onNudge: (seg: number, side: 'start' | 'end', dir: -1 | 1) => void
   onRemoveSegment: (seg: number) => void
-  onExport: (kind: 'edl' | 'csv' | 'json') => void
+  onExport: (kind: 'edl' | 'csv' | 'json' | 'mp4' | 'mp4wide') => void
+  serverVideos?: number[]
+  rendering?: string | null
   onDelete: () => void
   onJump: (episode: number) => void
   onSegments: (segments: SegIn[]) => void
@@ -68,7 +70,7 @@ function plainCheck(name: string, detail: string, limits: { min: number; max: nu
   }
 }
 
-export function Inspector({ promo, result, checking, error, eps, limits, total, onChange, onNudge, onRemoveSegment, onExport, onDelete, onJump, onSegments, onRestore, rankWhy, videos, onAttach }: Props) {
+export function Inspector({ promo, result, checking, error, eps, limits, total, onChange, onNudge, onRemoveSegment, onExport, onDelete, onJump, onSegments, onRestore, rankWhy, videos, onAttach, serverVideos = [], rendering }: Props) {
   const segs = result?.segments ?? []
   const ai = promo.ai
   const j = ai?.ai_checks
@@ -138,6 +140,7 @@ export function Inspector({ promo, result, checking, error, eps, limits, total, 
             {promo.edited && <span className="block text-[12px] text-fg-3">You changed this cut; the checks are for your version.</span>}
           </span>
         </div>
+        {rendering && <p className="text-[12px] text-fg-2">{rendering}</p>}
         <div className="flex gap-2">
           <button onClick={() => onChange({ ...promo, status: promo.status === 'approved' ? 'draft' : 'approved' })}
             disabled={codeFailing > 0 || segs.length === 0} title={codeFailing ? 'Fix the failing checks first' : undefined}
@@ -156,6 +159,12 @@ export function Inspector({ promo, result, checking, error, eps, limits, total, 
             </button>
             {exportOpen && (
               <div className="absolute right-0 top-11 z-20 w-52 rounded-[10px] border hairline bg-ink-3 p-1 shadow-[0_8px_24px_rgb(0_0_0/0.4)]" onMouseLeave={() => setExportOpen(false)}>
+                {segs.every(s => serverVideos.includes(s.episode)) ? (
+                  <>
+                    <button onClick={() => { onExport('mp4'); setExportOpen(false) }} className="w-full text-left rounded-[6px] px-2.5 py-1.5 text-[13px] text-fg-1 hover:bg-ink-4 transition-colors duration-150">MP4 video, vertical 9:16</button>
+                    <button onClick={() => { onExport('mp4wide'); setExportOpen(false) }} className="w-full text-left rounded-[6px] px-2.5 py-1.5 text-[13px] text-fg-1 hover:bg-ink-4 transition-colors duration-150">MP4 video, original shape</button>
+                  </>
+                ) : <p className="px-2.5 py-1.5 text-[12px] leading-4 text-fg-3">MP4: attach the episode videos below first</p>}
                 {([['edl', 'EDL: opens in Premiere, Resolve'], ['csv', 'CSV: a spreadsheet row'], ['json', 'JSON: for other tools']] as const).map(([k, l]) => (
                   <button key={k} onClick={() => { onExport(k); setExportOpen(false) }}
                     className="w-full text-left rounded-[6px] px-2.5 py-1.5 text-[13px] text-fg-1 hover:bg-ink-4 transition-colors duration-150">{l}</button>
@@ -342,7 +351,7 @@ function VideoSection({ segs, videos, onAttach }: { segs: SegOut[]; videos: Reco
   return (
     <div className="rounded-[10px] border hairline px-3 py-2.5">
       <p className="text-[13px] text-fg-1">Have the episode videos? <span className="text-fg-3">(optional)</span></p>
-      <p className="mt-0.5 text-[12px] leading-[18px] text-fg-3">The scripts are enough to find promos. If you also have the episode video files, attach them and this promo plays right here, piece by piece, from its IN to its OUT.</p>
+      <p className="mt-0.5 text-[12px] leading-[18px] text-fg-3">The scripts are enough to find promos. If you also have the episode video files, attach them: this promo plays right here, and Export gives you the finished MP4, cut exactly at these times.</p>
       <button onClick={() => setOpen(true)} className="mt-2 text-[12px] text-fg-2 underline underline-offset-2 hover:text-fg-1">Attach episode videos</button>
     </div>
   )

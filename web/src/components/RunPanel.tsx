@@ -93,6 +93,12 @@ export function RunPanel({ show, onUploaded, onDone, onBrowse, hasRuns }: Props)
 
   const maxEp = show?.episodes.length ?? 0
   const episodes = scope === 'all' ? null : parseEpisodes(range, maxEp)
+  const [est, setEst] = useState<{ episodes: number; calls: number; tokens: number } | null>(null)
+  const epKey = JSON.stringify(episodes)
+  useEffect(() => {
+    if (!show || episodes === undefined) { setEst(null); return }
+    api.estimate(show.id, episodes).then(setEst).catch(() => setEst(null))
+  }, [show?.id, epKey]) // eslint-disable-line react-hooks/exhaustive-deps
   const canRun = !!show && (custom ? !!baseUrl && !!model : !!model) && episodes !== undefined && job?.status !== 'running'
 
   const run = async () => {
@@ -310,6 +316,12 @@ export function RunPanel({ show, onUploaded, onDone, onBrowse, hasRuns }: Props)
 
       <div className="space-y-3">
         {err && <p className="text-[13px] text-bad">{err}</p>}
+        {est && (
+          <p className="text-[12px] leading-[18px] text-fg-3">
+            Estimated: about <span className="text-fg-2 font-mono tnum">{est.calls}</span> model calls and <span className="text-fg-2 font-mono tnum">{est.tokens.toLocaleString()}</span> tokens for {est.episodes} episode{est.episodes === 1 ? '' : 's'}. Answers are saved, so running the same thing again costs nothing.
+            {est.tokens > 150000 && <span className="block text-fg-2">That's a full show. To try things out, pick "Only some" and 2–3 episodes first.</span>}
+          </p>
+        )}
         <button onClick={run} disabled={!canRun}
           className="h-10 rounded-[8px] bg-fg-1 px-5 text-[13px] font-medium text-ink-1 shadow-[inset_0_1px_0_rgb(255_255_255/0.4)] hover:bg-white active:scale-[0.98] transition-[background-color,transform] duration-150 disabled:opacity-40">
           Find promos

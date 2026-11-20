@@ -39,7 +39,14 @@ export default function App() {
   const [centre, setCentre] = useState<'promo' | 'episode'>('promo')
   const [showCamera, setShowCamera] = useState(false)
   const [videos, setVideos] = useState<Record<number, string>>({})   // episode -> local object URL (never uploaded)
-  const attach = (files: File[]) => setVideos(v => {
+  const [serverVideos, setServerVideos] = useState<number[]>([])
+  const [rendering, setRendering] = useState<string | null>(null)
+  useEffect(() => { api.videos(showId).then(r => setServerVideos(r.episodes)).catch(() => setServerVideos([])) }, [showId])
+  const attach = (files: File[]) => {
+    attachLocal(files)
+    api.uploadVideos(showId, files).then(r => setServerVideos(r.episodes)).catch(() => {})   // local server, for MP4 export
+  }
+  const attachLocal = (files: File[]) => setVideos(v => {
     const next = { ...v }
     for (const f of files) {
       const n = parseInt((f.name.match(/(\d+)/) ?? [])[1] ?? '', 10)
@@ -164,12 +171,18 @@ export default function App() {
     update({ ...active, segments: active.segments.map((s, k) => k === i ? { ...s, [side]: next } : s) })
   }
 
-  const exportOne = (kind: 'edl' | 'csv' | 'json') => {
+  const exportOne = (kind: 'edl' | 'csv' | 'json' | 'mp4' | 'mp4wide') => {
     if (!active || !result) return
     const slug = active.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'promo'
     if (kind === 'edl') download(`${slug}.edl`, toEDL(active, result.segments))
     if (kind === 'csv') download(`${slug}.csv`, toCSV([{ p: active, segs: result.segments }]), 'text/csv')
     if (kind === 'json') download(`${slug}.json`, JSON.stringify({ ...active, cuts: result.segments, checks: result.checks }, null, 2), 'application/json')
+    if (kind === 'mp4' || kind === 'mp4wide') {
+      setRendering('Cutting the video')
+      api.render(showId, active.segments, active.title, kind === 'mp4', limits.min, limits.max)
+        .then(b => { const url = URL.createObjectURL(b); Object.assign(document.createElement('a'), { href: url, download: `${slug}.mp4` }).click(); setRendering(null) })
+        .catch(e => setRendering(String(e.message ?? e)))
+    }
   }
 
   const exportAll = () => {
@@ -413,7 +426,7 @@ export default function App() {
                 onJump={n => { setEpNo(n); setCentre('episode') }}
                 rankWhy={active.ai && active.kind !== 'teaser' ? rankReason(active.ai, active.foundBy) : undefined}
                 onSegments={segments => update({ ...active, segments })}
-                videos={videos} onAttach={attach}
+                videos={videos} onAttach={attach} serverVideos={serverVideos} rendering={rendering}
                 onRestore={active.ai ? () => setEdits(m => { const n = { ...m }; delete n[active.id]; return n }) : undefined}
                 onChange={update} onNudge={nudge}
                 onRemoveSegment={i => update({ ...active, segments: active.segments.filter((_, k) => k !== i) })}

@@ -114,14 +114,16 @@ WORDLESS MOMENTS COUNT: an ACTION or SFX line (a slap, a kneel, a ring offered, 
 
 Also pick ONE TEASER from this episode: {TEASER_MIN:.0f}–{TEASER_MAX:.0f} seconds, played at the end of the PREVIOUS episode ("next time"). It opens a question this episode answers, and it must NOT show this episode's ending or its main pay-off.
 
-Hook types: identity_reversal (hidden identity, status flip), forced_marriage (contract or forced marriage), humiliation_revenge (public humiliation, revenge), forbidden_romance (forbidden or taboo love), other.
+Hook types: identity_reversal (hidden identity, status flip), forced_marriage (contract or forced marriage), humiliation_revenge (public humiliation, revenge), forbidden_romance (forbidden or taboo love), other. Pick the closest, and ALSO name the hook in this show's own terms in hook_label (2-4 words, e.g. "public slap", "body in the lake", "jump scare", "fake death").
+Also write episode_summary: one line on what happens in this episode.
 
 Refer to moments ONLY by the event ids in [brackets]. Never write timestamps. Do NOT give scores: answer the evidence questions honestly; code scores them.
-Evidence: opens_on = id of the charged moment the promo opens on; conflict_type = accusation | humiliation | reveal | threat | violence | rejection | confession | betrayal | other | none; ends_on = id of the moment it cuts on; open_question = the exact question a viewer is left with at the cut ("" if none); needs_backstory = true if a stranger needs earlier episodes to get it; stakes = who is hurt and what they could lose, one line; power_shift = true if someone's status flips inside the promo.
+Evidence: opens_on = id of the charged moment the promo opens on; conflict_type = accusation | humiliation | reveal | threat | violence | rejection | confession | betrayal | other | none; ends_on = id of the moment it cuts on; open_question = the exact question a viewer is left with at the cut ("" if none); needs_backstory = true if a stranger needs earlier episodes to get it; stakes = who is hurt and what they could lose, one line; power_shift = true if someone's status flips inside the promo; intense_beats = ids of the 1-5 most charged moments INSIDE the promo (any genre: a slap, a scream, a door slamming in the dark, a confession, a joke landing).
 
 Reply with JSON only:
-{{"promos":[{{"title":"3-6 word name","segments":[{{"first":"id","last":"id"}}],"hook":"what happens in the first 3 s","cliffhanger":"the question left open at the cut","why":"one line on why it works","hook_type":"one of the types","evidence":{{"opens_on":"id","conflict_type":"...","ends_on":"id","open_question":"...","needs_backstory":false,"stakes":"...","power_shift":false}}}}],
-"teaser":{{"first":"id","last":"id","line":"the line or moment it hangs on","why":"one line"}}}}"""
+{{"promos":[{{"title":"3-6 word name","segments":[{{"first":"id","last":"id"}}],"hook":"what happens in the first 3 s","cliffhanger":"the question left open at the cut","why":"one line on why it works","hook_type":"one of the types","hook_label":"2-4 words","evidence":{{"opens_on":"id","conflict_type":"...","ends_on":"id","open_question":"...","needs_backstory":false,"stakes":"...","power_shift":false,"intense_beats":["id"]}}}}],
+"teaser":{{"first":"id","last":"id","line":"the line or moment it hangs on","why":"one line"}},
+"episode_summary":"one line"}}"""
 
 def trailer_system(lo: float, hi: float) -> str:
     pieces = "3-4" if hi <= 60 else "4-6"
@@ -135,7 +137,7 @@ Never show how the series ends or reveal its final twist. It must make sense to 
 Build it from the story's turning points (given below) up to, but never including, the climax. Convey the show's mood.
 You may open with 2-3 FLASH pieces of 1-2 s each (a gasp, a slap, a tear, a ring held out): a burst of emotion before the story beats.
 Pieces should be short (1-2 s for flashes, 8-18 s otherwise). Use ONLY the event ids given. Reply with JSON only:
-{{{{"trailers":[{{{{"title":"3-6 word name","segments":[{{{{"first":"id","last":"id"}}}}],"hook":"...","cliffhanger":"...","why":"...","mood":"...","hook_type":"...","evidence":{{{{"opens_on":"id","conflict_type":"...","ends_on":"id","open_question":"...","needs_backstory":false,"stakes":"...","power_shift":false}}}}}}}}]}}}}"""
+{{{{"trailers":[{{{{"title":"3-6 word name","segments":[{{{{"first":"id","last":"id"}}}}],"hook":"...","cliffhanger":"...","why":"...","mood":"...","hook_type":"...","evidence":{{{{"opens_on":"id","conflict_type":"...","ends_on":"id","open_question":"...","needs_backstory":false,"stakes":"...","power_shift":false,"intense_beats":["id"]}}}}}}}}]}}}}"""
 
 
 TRAILER_SYSTEM = trailer_system(60, 90)
@@ -166,11 +168,17 @@ Reply with JSON only: {"cliffhanger_open":true,"cliffhanger_reason":"...","spoil
 
 # ---------------------------------------------------------------- text helpers
 
+DRAMATIC_SHOT = re.compile(r"close-up|closeup|extreme|reaction|push(es)? in|slow motion|zoom|tears?|eyes|shock|freeze|insert", re.I)
+
+
 def script_lines(ep: Episode) -> str:
+    """The episode as the model reads it. Routine camera notes are dropped (they were half of all tokens);
+    dramatic ones (close-ups, reactions, push-ins) are kept short, because they carry the picture's tension."""
     out = []
     for e in ep.events:
         if e.kind == "camera":
-            out.append(f"[{e.id}] {stamp(e.start)}-{stamp(e.end)} SHOT: {e.text[:80]}")
+            if DRAMATIC_SHOT.search(e.text):
+                out.append(f"[{e.id}] {stamp(e.start)} SHOT: {e.text[:48]}")
         elif e.kind == "dialogue":
             emo = f" ({e.emotion})" if e.emotion else ""
             out.append(f"[{e.id}] {stamp(e.start)}-{stamp(e.end)} {e.speaker}{emo}: {e.text}")
@@ -239,6 +247,7 @@ def _clean(raw: dict) -> dict:
     return {"title": str(raw.get("title") or "")[:80], "hook": str(raw.get("hook") or ""),
             "cliffhanger": str(raw.get("cliffhanger") or ""), "why": str(raw.get("why") or ""),
             "mood": str(raw.get("mood") or ""),
+            "hook_label": str(raw.get("hook_label") or "")[:40],
             "hook_type": ht,
             "evidence": raw.get("evidence") if isinstance(raw.get("evidence"), dict) else {},
             "scores": {k: 5.0 for k in WEIGHTS}}   # replaced by the rubric once the cut exists
@@ -266,6 +275,8 @@ def find_episode(provider, ep: Episode, eps: dict[int, Episode], cfg: RunConfig,
             f"The teaser must END before {stamp(ep.duration * TEASER_ENDING)}: after that is this episode's ending, which a teaser must not show.\n"
             f"Return up to {cfg.candidates_per_episode} promos and one teaser.")
     data = ask_json(provider, FIND_SYSTEM, user)
+    if not ep.logline and data.get("episode_summary"):   # scripts without loglines: the model's summary feeds the
+        ep.logline = str(data["episode_summary"])[:300]   # story-so-far, the judges, the story map and the trailers
     promos = [{**_clean(p), **build(p, eps, PROMO_MIN, PROMO_MAX), "source_episode": ep.number}
               for p in (data.get("promos") or [])[: cfg.candidates_per_episode + 2] if isinstance(p, dict)]
     teaser = data.get("teaser") if isinstance(data.get("teaser"), dict) else None
@@ -275,9 +286,11 @@ def find_episode(provider, ep: Episode, eps: dict[int, Episode], cfg: RunConfig,
              **build(teaser, eps, TEASER_MIN, TEASER_MAX), "from_episode": ep.number, "for_episode": ep.number - 1}
         _teaser_ending_check(t, ep)
 
-    failing = [p for p in promos if not p["code_ok"]] + ([t] if t and not t["code_ok"] else [])
-    if failing:   # one repair round, with the measured reasons
-        lines = [f"PROMO {i + 1} ({p.get('title') or 'teaser'}): {_failures(p)}" for i, p in enumerate(failing)]
+    failing = [p for p in promos if not p["code_ok"]]
+    # one repair round, only when this episode would otherwise have fewer than 2 usable promos
+    # (repairing every episode doubled the tokens; a failed teaser is fitted in code instead)
+    if failing and sum(1 for p in promos if p["code_ok"]) < 2:
+        lines = [f"PROMO {i + 1} ({p.get('title') or 'untitled'}): {_failures(p)}" for i, p in enumerate(failing)]
         fix = ask_json(provider, FIND_SYSTEM, user + "\n\nThese picks FAILED the editor's checks:\n" + "\n".join(lines) +
                        "\nReturn corrected promos and teaser in the same JSON (choose different event ids so each passes).")
         fixed = [{**_clean(p), **build(p, eps, PROMO_MIN, PROMO_MAX), "source_episode": ep.number, "repaired": True}

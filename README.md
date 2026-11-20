@@ -79,6 +79,24 @@ flowchart LR
   - Anything else is converted by the model.
   - **Hindi and regional languages** work; a Hindi screenplay is in [`samples/hindi`](samples/hindi). Results can be written in English, Hindi, Hinglish, Tamil, Telugu, Bengali or Marathi.
 
+## Works on shows it has never seen
+
+Kuku's interview runs it on a different show, so nothing is tied to this one:
+
+- **Formats:** Kuku's timestamped scripts; screenplays (Fountain, plain text, Final Draft, Word, PDF); subtitles (SRT, VTT). Anything else is converted by the model.
+- **Languages:** English, Hindi, Hinglish and regional scripts, with results in any of them.
+- **Genres:** hooks are named in each genre's own terms, and intensity comes from moments the model points at, not a drama word list.
+- **Missing summaries** are written by the model in the same call.
+- **Tested** on an unseen horror show written as subtitle files (in `samples/subtitles-horror`): 2 clean promos and a teaser for about 9k tokens. A Hinglish episode (`samples/hinglish`) gives Hinglish titles, hooks and reasons.
+
+## From timestamps to video
+
+The brief asks for the moments and cut points, so the core output is a cut list: EDL for Premiere and Resolve, CSV, or JSON. Attach the episode videos and **Export → MP4** cuts the promo straight from them, every piece at its exact IN and OUT, joined, vertical 9:16 or the original shape. Straight cuts only, no music or text.
+
+## Cost
+
+New run shows the size before you start (a full 50-episode show is about 100 calls and 400k tokens; 3 episodes about 90k). Answers are cached, so re-running costs nothing. Routine camera notes are dropped from prompts (they were half the script tokens), and an episode is only re-asked when it has fewer than 2 usable promos.
+
 ## Results on Kuku's show (50 episodes, OpenAI `gpt-5.4-mini`)
 
 | | |
@@ -116,7 +134,7 @@ Command line:
 .venv/bin/python -m promo.run --show "<folder>" --provider custom --base-url https://host/v1 --model <name>
 ```
 
-Tests (27):
+Tests (31):
 
 ```bash
 .venv/bin/python -m pytest -q

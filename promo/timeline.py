@@ -53,7 +53,7 @@ _HEADER = re.compile(r"^(EPISODE NUMBER|EPISODE LOGLINE|CONTINUITY NOTES):\s*(.*
 
 def seconds(stamp: str) -> float:
     """'02:17.50' -> 137.5; '1:02:03.5' -> 3723.5."""
-    m = _TIME.fullmatch(stamp.strip())
+    m = _TIME.fullmatch(stamp.strip().replace(",", "."))
     if not m:
         raise ValueError(f"bad timestamp: {stamp!r}")
     h, mnt, s = m.groups()
@@ -159,12 +159,16 @@ def load_episode(path: str | Path, number: int = 0) -> Episode:
 
 def load_show(folder: str | Path, provider=None) -> list[Episode]:
     """Every script file in a folder, in any format we can read (see promo/formats.py)."""
-    from .formats import load_any
-    files = sorted(p for p in Path(folder).iterdir()
-                   if p.is_file() and p.suffix.lower() in (".txt", ".md", ".fountain", ".text", ""))
+    from .formats import SCRIPT_SUFFIXES, load_any, read_text
+    files = sorted((p for p in Path(folder).iterdir()
+                    if p.is_file() and not p.name.startswith(".") and p.suffix.lower() in SCRIPT_SUFFIXES),
+                   key=lambda p: [int(t) if t.isdigit() else t for t in re.split(r"(\d+)", p.name.lower())])
     eps: list[Episode] = []
     for i, p in enumerate(files):
-        eps.extend(load_any(p.read_text(encoding="utf-8", errors="replace"), i + 1, provider))
+        try:
+            eps.extend(load_any(read_text(p), i + 1, provider))
+        except ValueError as err:
+            raise ValueError(f"{p.name}: {err}") from err
     seen: set[int] = set()
     for i, e in enumerate(sorted(eps, key=lambda e: e.number)):   # keep numbers unique
         if e.number in seen or e.number <= 0:

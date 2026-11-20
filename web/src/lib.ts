@@ -118,6 +118,20 @@ export const api = {
   taste: () => req<{ approved: number; rejected: number }>('/api/taste'),
   decide: (d: { promo_id: string; decision: string; title: string; hook?: string; cliffhanger?: string; hook_type: string; note: string; show: string }) =>
     req<{ approved: number; rejected: number }>('/api/taste', post(d)),
+  estimate: (sid: string, episodes: number[] | null) => req<{ episodes: number; calls: number; tokens: number }>(`/api/shows/${sid}/estimate?episodes=${(episodes ?? []).join(',')}`),
+  videos: (sid: string) => req<{ episodes: number[] }>(`/api/shows/${sid}/videos`),
+  uploadVideos: (sid: string, files: File[]) => {
+    const f = new FormData()
+    files.forEach(x => f.append('files', x))
+    return req<{ episodes: number[]; saved: number[] }>(`/api/shows/${sid}/videos`, { method: 'POST', body: f })
+  },
+  render: async (sid: string, segments: SegIn[], title: string, vertical: boolean, min = 20, max = 60) => {
+    const headers: Record<string, string> = { 'content-type': 'application/json' }
+    if (passcode) headers['x-passcode'] = passcode
+    const r = await fetch(`/api/shows/${sid}/render`, { method: 'POST', headers, body: JSON.stringify({ segments, title, vertical, min, max }) })
+    if (!r.ok) { let m = `${r.status}`; try { m = (await r.json()).detail ?? m } catch { /* */ } throw new Error(m) }
+    return r.blob()
+  },
   upload: (files: File[], title: string) => {
     const f = new FormData()
     files.forEach(x => f.append('files', x))

@@ -21,10 +21,14 @@ STRONG_CONFLICT = {"accusation", "humiliation", "reveal", "threat", "violence", 
 HOT_EMOTION = re.compile(
     r"furious|enraged|livid|hysteri|desperat|terrif|horrif|panic|frantic|scream|sob|weep|tear|trembl|shak|"
     r"devastat|heartbroken|shock|gasp|menac|cruel|venom|vicious|seeth|rage|beg|plead|anguish|accus|threat|"
-    r"contempt|sneer|mock|disgust|fear|cold|icy|गुस्स|चीख|डर|रोत", re.I)
+    r"contempt|sneer|mock|disgust|fear|cold|icy|"
+    r"gussa|gusse|cheekh|chilla|rote|rona|aansu|ghabra|kaanp|taunt|dhamki|nafrat|"            # Hinglish
+    r"गुस्स|चीख|चिल्ला|रो|आंसू|डर|घबरा|कांप|धमकी|नफ़रत", re.I)
 HOT_ACTION = re.compile(
     r"\b(slap|strike|struck|punch|shove|push|grab|seiz|kneel|knee|collaps|faint|smash|shatter|throw|thrown|"
-    r"rip|kiss|poison|blood|knife|gun|chok|drag|spit|burn|scream|cries|sob|crash|gasp|falls|drops|laugh|humiliat|pours?|tips? her)\w*", re.I)
+    r"rip|kiss|poison|blood|knife|gun|chok|drag|spit|burn|scream|cries|sob|crash|gasp|falls|drops|laugh|humiliat|pours?|tips? her|"
+    r"thappad|maar|ulat|gir|toot|sannata|hans|"
+    r"slam|footstep|creak|whisper|knock|lights? (go|goes|went) out|blackout|darkness|shadow|music box|bang|thud|crack)\w*", re.I)
 
 
 def _events(item: dict, eps: dict[int, Episode]) -> list[tuple[float, object]]:
@@ -106,8 +110,11 @@ def apply_rubric(item: dict, eps: dict[int, Episode], leads: list[str] | None = 
     lead = next((sp for sp in speakers if leads and any(l in sp.upper() for l in leads)), None)
     add("standalone", 3 if lead else 0, 3, f"A lead is in it: {lead}" if lead else "None of the leads speaks")
 
-    # ---- emotion: read from the script, plus a status flip (ReelShort's conflict + reversal)
-    beats = [e for _, e in plays if HOT_EMOTION.search(e.emotion or "") or (e.kind in ("action", "sfx") and HOT_ACTION.search(e.text))]
+    # ---- emotion: the model names the charged beats (works in any genre or language) and code checks they are
+    # inside the promo; emotion tags and charged actions/sounds read straight from the script count too
+    named = {str(x) for x in (ev.get("intense_beats") or []) if str(x) in when}
+    beats = [e for _, e in plays if e.id in named or HOT_EMOTION.search(e.emotion or "")
+             or (e.kind in ("action", "sfx") and HOT_ACTION.search(e.text))]
     add("emotion", min(6, 2 * len(beats)), 6,
         f"{len(beats)} intense beat{'s' if len(beats) != 1 else ''} in the script" + (f", e.g. {(beats[0].emotion or _quote(beats[0]))}" if beats else ""))
     add("emotion", 4 if ev.get("power_shift") else 0, 4, "Power shifts inside the promo" if ev.get("power_shift") else "No power shift")

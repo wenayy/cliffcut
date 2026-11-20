@@ -9,6 +9,37 @@ All screenshots use **our own demo show**, *The Maid Who Owned the House*, which
 
 > **Updated screen (latest):** when you open a promo, the centre now shows **the promo itself**: what plays, in order, timed from 0:00, with "Starts here: the hook" at the top and "Cut here: the cliffhanger" at the end. **Whole episode** shows it in context, with the promo's lines tinted between "Promo starts" and "Promo ends" markers. Camera notes are hidden unless you tick "Camera notes". The older side lines and brackets in some screenshots below are gone.
 
+## "What if the show is in Hinglish? What does the output look like?"
+
+Pick **Write results in: Hinglish** on New run. The script's own lines stay exactly as written, and the titles, hooks, cliffhangers and reasons come back in Hinglish. A real run on our Hinglish test episode (`samples/hinglish`):
+
+> **Naukrani Ka Haq** · 26.9 s
+> Hook: *Riya Meera ki uniform par wine gira deti hai aur sab hansne lagte hain.*
+> Cliffhanger: *Kya sach mein ek naukrani is haveli ki malik ban sakti hai?*
+> Why: *Public humiliation ke baad turant status flip aata hai…*
+
+Hinglish emotion words ("gusse mein", "cheekhte hue", "thappad") are recognised in the scoring too.
+
+## "The editor needs the video. How do the timestamps become a video?"
+
+The brief asks only for the moments and the start and end points ("no editing, music or text overlays"), so the core output is the cut list. To turn it into video, there are three ways:
+
+1. **MP4 from Cliffcut.** Attach the episode video files ("Have the episode videos?" in the right panel). **Export → MP4 video** then cuts every piece from its episode at the exact IN and OUT, joins them in order, and gives you one MP4, either vertical 9:16 or the original shape. Straight cuts only, as the brief asks. Tested: the MP4's length matched the planned cut within 0.3 s.
+2. **EDL.** Premiere or DaVinci Resolve opens it with every piece already on the timeline, for an editor who wants to add music and text.
+3. **By hand** from the IN and OUT times.
+
+So the editor no longer watches 50 episodes to find moments. They get a ranked list, check the top ones, and download the cut video.
+
+## "Will it work on a different show in the interview?"
+
+That's the real test, so the engine was checked for anything tied to this one show:
+
+- **Formats:** Kuku's timestamped format, screenplays (Fountain, plain text, Final Draft `.fdx`, Word `.docx`, PDF), and subtitles (`.srt`, `.vtt`, which carry real timestamps). Anything else is converted by the AI automatically. Files sort naturally (episode 2 before 10).
+- **No one-line summaries in the script?** The AI writes one per episode in the same call it already makes, so later steps (story so far, judges, trailers) still have context, at no extra cost.
+- **Any genre:** hooks get a free label in the genre's own words ("haunted photo", "music box ghost"), and the emotion score uses moments the AI names by line, checked by code, so horror's door slams count as much as a drama's slaps.
+- **Any language:** English, Hindi, Hinglish and regional scripts; results in the language you choose.
+- **Tested on an unseen show:** *The Lodge*, a horror series written as subtitle files, a genre and format the engine had never seen. Real run: 2 promos that passed every check, "The Girl Behind Him" (music box ghost) and "Photo in the Dark" (photo reveal), plus a teaser, for 9,000 tokens.
+
 ## "How are the scores decided? They look random."
 
 They were: the AI used to write its own 1–10 numbers. **Now the AI never gives a number.** It answers questions with evidence from the script, and code awards fixed points. Each promo shows every point and its reason.

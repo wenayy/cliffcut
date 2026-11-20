@@ -1,0 +1,63 @@
+1
+00:00:00,500 --> 00:00:03,200
+[A door slams upstairs]
+
+2
+00:00:03,400 --> 00:00:06,000
+ANYA: Who's there? Dev, is that you?
+
+3
+00:00:06,500 --> 00:00:09,800
+DEV: I'm right here, Anya. I'm behind you.
+
+4
+00:00:10,200 --> 00:00:14,000
+ANYA: Then who just walked up the stairs?
+
+5
+00:00:14,500 --> 00:00:17,500
+[Footsteps cross the ceiling, slow and heavy]
+
+6
+00:00:18,000 --> 00:00:22,500
+DEV: The caretaker said nobody has stayed here since the fire.
+
+7
+00:00:23,000 --> 00:00:27,000
+ANYA: You told me this lodge was empty for a reason. What reason?
+
+8
+00:00:27,500 --> 00:00:32,000
+DEV: A family died in room six. Their daughter was never found.
+
+9
+00:00:32,500 --> 00:00:35,500
+[A child's music box starts playing]
+
+10
+00:00:36,000 --> 00:00:40,000
+ANYA: That's coming from room six.
+
+11
+00:00:40,500 --> 00:00:44,000
+DEV: Don't open it. Anya, please, don't open that door.
+
+12
+00:00:44,500 --> 00:00:47,000
+[The door creaks open]
+
+13
+00:00:47,500 --> 00:00:52,000
+ANYA: There's a bed. It's made. Someone sleeps here.
+
+14
+00:00:52,500 --> 00:00:56,500
+GIRL: You're in my room.
+
+15
+00:00:57,000 --> 00:01:00,000
+ANYA: Dev... she's standing right behind you.
+
+16
+00:01:00,500 --> 00:01:03,000
+[The lights go out]

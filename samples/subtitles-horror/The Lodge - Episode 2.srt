@@ -1,0 +1,51 @@
+1
+00:00:00,500 --> 00:00:04,000
+DEV: Anya! Anya, where are you?
+
+2
+00:00:04,500 --> 00:00:08,000
+[Glass shatters somewhere in the dark]
+
+3
+00:00:08,500 --> 00:00:12,000
+ANYA: I'm in the kitchen. Dev, the girl, she knew my name.
+
+4
+00:00:12,500 --> 00:00:16,500
+DEV: That's impossible. We've never been here before.
+
+5
+00:00:17,000 --> 00:00:21,000
+ANYA: Then why is there a photo of me on this wall?
+
+6
+00:00:21,500 --> 00:00:25,500
+DEV: That photo is from 1987. That can't be you.
+
+7
+00:00:26,000 --> 00:00:30,000
+CARETAKER: It's her. She's the daughter. She came back.
+
+8
+00:00:30,500 --> 00:00:34,000
+ANYA: I'm not anyone's daughter. My parents are alive.
+
+9
+00:00:34,500 --> 00:00:39,000
+CARETAKER: The people who raised you took you from this room.
+
+10
+00:00:39,500 --> 00:00:43,000
+[The music box starts again, louder]
+
+11
+00:00:43,500 --> 00:00:47,500
+DEV: We're leaving. Right now. Get the keys.
+
+12
+00:00:48,000 --> 00:00:52,000
+ANYA: The keys are gone. And so is the door.
+
+13
+00:00:52,500 --> 00:00:56,000
+GIRL: You can't leave, sister. You never could.

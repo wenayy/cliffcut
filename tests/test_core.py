@@ -120,3 +120,27 @@ def test_hindi_screenplay_reads_speakers_and_lines():
     assert ep.source_format == "screenplay" and len(lines) == 5
     assert lines[0].speaker == "रानी माँ" and lines[0].emotion == "गुस्से में"
     assert lines[3].speaker == "वकील"
+
+
+def test_unseen_formats_subtitles_finaldraft_word_and_comma_times():
+    import zipfile
+    from promo.timeline import load_show, seconds
+    root = Path(__file__).parent.parent / "samples"
+    lodge = load_show(root / "subtitles-horror")
+    assert [e.number for e in lodge] == [1, 2] and lodge[0].source_format == "subtitles"
+    assert lodge[0].of("dialogue")[0].speaker == "ANYA" and lodge[0].of("sfx")[0].text == "A door slams upstairs"
+    fdx = load_show(root / "finaldraft")[0]
+    assert [d.speaker for d in fdx.of("dialogue")] == ["CEO", "KABIR", "LAWYER"] and fdx.of("dialogue")[0].emotion == "cold"
+    assert seconds("00:01:02,500") == 62.5
+
+
+def test_word_document_is_read(tmp_path):
+    import zipfile
+    from promo.timeline import load_show
+    body = "".join(f"<w:p><w:r><w:t>{l}</w:t></w:r></w:p>" for l in
+                   ["INT. OFFICE - DAY", "", "MAYA", "(furious)", "You sold my company behind my back.", "",
+                    "ROHAN", "I saved it. You just don't know it yet."])
+    with zipfile.ZipFile(tmp_path / "ep1.docx", "w") as z:
+        z.writestr("word/document.xml", f"<w:document><w:body>{body}</w:body></w:document>")
+    ep = load_show(tmp_path)[0]
+    assert [d.speaker for d in ep.of("dialogue")] == ["MAYA", "ROHAN"]

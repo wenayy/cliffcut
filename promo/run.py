@@ -45,13 +45,16 @@ def main() -> int:
     ap.add_argument("--episodes")
     ap.add_argument("--concurrency", type=int)
     ap.add_argument("--brief", default="", help="what the editor wants this run to focus on")
+    ap.add_argument("--language", default="English", help="language for titles, hooks and reasons")
+    ap.add_argument("--genre", default="")
     ap.add_argument("--out", default=str(ROOT / "runs"))
     a = ap.parse_args()
     try:
         prov = Provider.from_preset(a.provider, a.model, base_url=a.base_url, cache_dir=Path(a.out) / "cache")
         eps = {e.number: e for e in load_show(a.show, provider=prov)}
         run = run_show(prov, eps, Path(a.show).name,
-                       RunConfig(episodes=episodes_arg(a.episodes), concurrency=a.concurrency, brief=a.brief),
+                       RunConfig(episodes=episodes_arg(a.episodes), concurrency=a.concurrency, brief=a.brief,
+                                 language=a.language, genre=a.genre),
                        progress=lambda st, k, n, m: print(f"\r{st:6} {k}/{n} {m:40}", end="", file=sys.stderr))
     except ProviderError as e:
         print(f"\n{e}", file=sys.stderr)
